@@ -2,39 +2,53 @@ import { useState } from "react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 
-// Usuario de prueba con los mocks del backend.
 const USUARIO_PRUEBA = "11111111-1111-1111-1111-111111111111";
 
 function App() {
   const [pagina, setPagina] = useState("empleos");
 
+  const enlaceBase =
+    "inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer";
+
+  const enlaceActivo =
+    "border-blue-600 text-blue-700";
+
+  const enlaceInactivo =
+    "border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200";
+
   return (
     <>
-      <header className="bg-white border-b border-gray-200">
-        <nav className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap gap-4">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
+
           <button
             type="button"
             onClick={() => setPagina("empleos")}
-            className={`font-medium cursor-pointer ${
+            aria-current={pagina === "empleos" ? "page" : undefined}
+            className={`${enlaceBase} ${
               pagina === "empleos"
-                ? "text-blue-700"
-                : "text-gray-600 hover:text-blue-700"
+                ? enlaceActivo
+                : enlaceInactivo
             }`}
           >
+            <span>💼</span>
             Buscar empleos
           </button>
 
           <button
             type="button"
             onClick={() => setPagina("recomendaciones")}
-            className={`font-medium cursor-pointer ${
+            aria-current={pagina === "recomendaciones" ? "page" : undefined}
+            className={`${enlaceBase} ${
               pagina === "recomendaciones"
-                ? "text-blue-700"
-                : "text-gray-600 hover:text-blue-700"
+                ? enlaceActivo
+                : enlaceInactivo
             }`}
           >
+            <span>✨</span>
             Mis recomendaciones
           </button>
+
         </nav>
       </header>
 
