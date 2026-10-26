@@ -9,6 +9,7 @@ const porcentajeDe = (empleo) =>
   );
 
 const coincidentesDe = (empleo) =>
+  empleo.coincidencias ??
   empleo.habilidadesCoincidentes ??
   empleo.requisitosCoincidentes ??
   [];
@@ -46,6 +47,13 @@ export default function Recomendaciones({ usuarioId }) {
   const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
 
   useEffect(() => {
+    if (!usuarioId) {
+      setRecomendaciones([]);
+      setError("No se pudo identificar al usuario autenticado.");
+      setCargando(false);
+      return;
+    }
+
     let activo = true;
 
     async function cargar() {

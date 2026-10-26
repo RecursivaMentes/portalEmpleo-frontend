@@ -4,6 +4,7 @@ import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
+import { obtenerUsuarioIdActual } from "./services/usuariosService";
 
 function App() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ function App() {
               <main>
                 <Routes>
                   <Route path="empleos" element={<Empleos />} />
-                  <Route path="recomendaciones" element={<Recomendaciones />} />
+                  <Route path="recomendaciones" element={<Recomendaciones usuarioId={obtenerUsuarioIdActual()} />} />
                   <Route path='chatbot' element={<Chatbot/>}/>
                   {/* Redirección por defecto si entran a '/' */}
                   <Route path="" element={<Navigate to="/empleos" replace />} />
