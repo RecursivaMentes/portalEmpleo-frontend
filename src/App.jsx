@@ -1,63 +1,68 @@
-import { useState } from "react";
+import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
-
-const USUARIO_PRUEBA = "11111111-1111-1111-1111-111111111111";
+import IniciarSesion from "./pages/IniciarSesion";
 
 function App() {
-  const [pagina, setPagina] = useState("empleos");
+  const navigate = useNavigate();
 
-  const enlaceBase =
-    "inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer";
+  // funcion para validar si el usuario esta autenticado
+  const estaAutenticado = () => !!localStorage.getItem("accessToken");
 
-  const enlaceActivo =
-    "border-blue-600 text-blue-700";
+  const cerrarSesion = () => {
+    localStorage.removeItem("accessToken");
+    navigate("/iniciarSesion",{replace:true});
+  };
 
-  const enlaceInactivo =
-    "border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200";
+  const enlaceBase ="inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer";
+
+  //para aplicar clases dinámicamente según la URL activa
+  const obtenerClaseEnlace = ({ isActive }) =>`${enlaceBase} ${isActive ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200"}`;
 
   return (
-    <>
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
+    <Routes>
+      <Route path="/iniciarSesion" element={<IniciarSesion />} />
+      <Route
+        path="/*"
+        element={
+          estaAutenticado() ? (
+            <>
+              <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+                <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
+                  <NavLink to="/empleos" className={obtenerClaseEnlace}>
+                    <span>💼</span> Buscar empleos
+                  </NavLink>
 
-          <button
-            type="button"
-            onClick={() => setPagina("empleos")}
-            aria-current={pagina === "empleos" ? "page" : undefined}
-            className={`${enlaceBase} ${
-              pagina === "empleos"
-                ? enlaceActivo
-                : enlaceInactivo
-            }`}
-          >
-            <span>💼</span>
-            Buscar empleos
-          </button>
+                  <NavLink to="/recomendaciones" className={obtenerClaseEnlace}>
+                    <span>✨</span> Mis recomendaciones
+                  </NavLink>
 
-          <button
-            type="button"
-            onClick={() => setPagina("recomendaciones")}
-            aria-current={pagina === "recomendaciones" ? "page" : undefined}
-            className={`${enlaceBase} ${
-              pagina === "recomendaciones"
-                ? enlaceActivo
-                : enlaceInactivo
-            }`}
-          >
-            <span>✨</span>
-            Mis recomendaciones
-          </button>
+                  <button
+                    type="button"
+                    onClick={cerrarSesion}
+                    className={`${enlaceBase} border-transparent text-slate-500 hover:text-red-700 ml-auto`}
+                  >
+                    <span>🚪</span> Cerrar Sesión
+                  </button>
+                </nav>
+              </header>
 
-        </nav>
-      </header>
-
-      {pagina === "empleos" ? (
-        <Empleos />
-      ) : (
-        <Recomendaciones usuarioId={USUARIO_PRUEBA} />
-      )}
-    </>
+              <main>
+                <Routes>
+                  <Route path="empleos" element={<Empleos />} />
+                  <Route path="recomendaciones" element={<Recomendaciones />} />
+                  {/* Redirección por defecto si entran a '/' */}
+                  <Route path="" element={<Navigate to="/empleos" replace />} />
+                </Routes>
+              </main>
+            </>
+          ) : (
+            // Si intenta entrar a cualquier ruta sin token  al Login
+            <Navigate to="/iniciarSesion" replace />
+          )
+        }
+      />
+    </Routes>
   );
 }
 
