@@ -35,37 +35,43 @@ const Chatbot=()=> {
     // 3. Crear un nuevo tema de conversación
     const handleCrearNuevoChat = async () => {
         try {
-            const nuevoChat = await crearChat(); // Tu endpoint recibe 'Tipo'
+            const nuevoChat = await crearChat(); // { id, tipo, fechaInicio }
             setChats([nuevoChat, ...chats]); // Lo agrega arriba en la lista
             setChatActivoId(nuevoChat.id);   // Lo selecciona automáticamente
         } catch (error) {
-            alert("No se pudo crear el chat");
+            alert(error.message);
         }
     };
 
-    // 4. Enviar mensaje y manejar la respuesta en tiempo real (Streaming)
+    // 4. Enviar mensaje. La API responde con todo el texto junto (no hay streaming):
+    //    { mensajeUsuario: { id, rol, contenido, fecha }, respuesta: { id, rol, contenido, fecha } }
     const handleEnviar = async (e) => {
         e.preventDefault();
-        if (!nuevoMensaje.trim() || !chatActivoId) return;
+        const texto = nuevoMensaje.trim();
+        if (!texto || !chatActivoId) return;
 
-        const mensajeUsuario = {Rol: 'user', Contenido: nuevoMensaje };
-  
-  
-        setMensajes(prev => [...prev, mensajeUsuario]);
+        // Se muestra enseguida con un id temporal; al llegar la respuesta se reemplaza por el real.
+        const idTemporal = `tmp-${Date.now()}`;
+        setMensajes(prev => [...prev, { id: idTemporal, rol: 'Usuario', contenido: texto }]);
         setNuevoMensaje("");
         setEstaCargando(true); // Evita envíos dobles mientras responde la API
 
         try {
-            const respuesta = await enviarMensaje(chatActivoId, mensajeUsuario.Contenido);
-    
-            //respuesta del bot al chat
-            const mensajeBot = { Rol: 'assistant',Contenido: respuesta };
-            setMensajes(prev => [...prev, mensajeBot]);
-            } catch (error) {
-                console.error("Error al enviar el mensaje:", error);
-                alert("No se pudo enviar el mensaje");
-             } finally {
-                setEstaCargando(false);
+            const resultado = await enviarMensaje(chatActivoId, texto);
+
+            setMensajes(prev => [
+                ...prev.filter(m => m.id !== idTemporal),
+                resultado.mensajeUsuario,
+                resultado.respuesta,
+            ]);
+        } catch (error) {
+            console.error("Error al enviar el mensaje:", error);
+            // Si la API falla no guarda nada: se quita el mensaje y se devuelve el texto al cuadro para reintentar.
+            setMensajes(prev => prev.filter(m => m.id !== idTemporal));
+            setNuevoMensaje(texto);
+            alert(error.message);
+        } finally {
+            setEstaCargando(false);
         }
     };
 
@@ -86,7 +92,7 @@ const Chatbot=()=> {
                                 onClick={() => setChatActivoId(c.id)}
                                 style={{ padding: '10px', margin: '5px 0', background: chatActivoId === c.id ? '#343541' : 'transparent', borderRadius: '5px', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                             >
-                                Chat #{c.fechaInicio} 
+                                Chat del {new Date(c.fechaInicio).toLocaleString()} 
                             </li>
                         ))}
                     </ul>
@@ -100,17 +106,17 @@ const Chatbot=()=> {
                         {/* Mensajes */}
                         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
                             {mensajes.map((m, index) => (
-                            <div key={m.id || index} style={{ display: 'flex', justifyContent: m.Rol === 'user' ? 'flex-end' : 'flex-start', margin: '15px 0' }}>
-                                <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: m.Rol === 'user' ? '#10a37f' : '#444654', lineHeight: '1.4' }}>
-                                    <strong>{m.Rol === 'user' ? 'Tú: ' : 'Ollama: '}</strong>           
-                                        {m.Contenido} 
+                            <div key={m.id || index} style={{ display: 'flex', justifyContent: m.rol === 'Usuario' ? 'flex-end' : 'flex-start', margin: '15px 0' }}>
+                                <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: m.rol === 'Usuario' ? '#10a37f' : '#444654', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
+                                    <strong>{m.rol === 'Usuario' ? 'Tú: ' : 'Asistente: '}</strong>
+                                        {m.contenido}
                                 </div>
                             </div>
                             ))}
                             {estaCargando && (
                                 <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '15px 0' }}>
                                     <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: '#444654', color: '#aaa', lineHeight: '1.4' }}>
-                                        <strong>Ollama: </strong>
+                                        <strong>Asistente: </strong>
                                             <em>Pensando...</em>
                                     </div>
                                 </div>
@@ -124,7 +130,7 @@ const Chatbot=()=> {
                                 type="text" 
                                 value={nuevoMensaje}
                                 onChange={(e) => setNuevoMensaje(e.target.value)}
-                                placeholder="Escribe un mensaje a Ollama..."
+                                placeholder="Escribe un mensaje..."
                                 style={{ flex: 1, padding: '12px', borderRadius: '5px', border: 'none', background: '#40414f', color: 'white', fontSize: '16px', outline: 'none' }}
                                 disabled={estaCargando}
                             />
@@ -135,7 +141,7 @@ const Chatbot=()=> {
                     </>
                 ) : (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa0a6' }}>
-                        <h2>Selecciona un chat o crea uno nuevo para empezar a hablar con Ollama.</h2>
+                        <h2>Selecciona un chat o crea uno nuevo para empezar a hablar con el asistente.</h2>
                     </div>
                 )}
             </div>

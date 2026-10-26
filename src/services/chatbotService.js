@@ -17,7 +17,7 @@ export const crearChat = async (Tipo) => {
         const response = await axios.post(`${API_URL}/api/chats`,payload,getHeaders());
         return response.data;
     } catch (error) {
-        console.log(error.response.data);
+        console.log(error.response?.data ?? error.message);
         
         throw new Error(error.response?.data?.message || 'Error al crear Chat');
     }  
@@ -28,7 +28,7 @@ export const enviarMensaje=async(idChat,Contenido)=>{
         const response=await axios.post(`${API_URL}/api/chats/${idChat}/mensajes`,{Contenido},getHeaders());
         return response.data;
     } catch (error) {
-        console.log(error.response.data);
+        console.log(error.response?.data ?? error.message);
         
         throw new Error(error.response?.data?.message || 'Error al enviar mensaje');
     }
@@ -39,7 +39,7 @@ export const listarChats=async()=>{
         const response=await axios(`${API_URL}/api/chats`,getHeaders())
         return response.data;
     } catch (error) {
-        console.log(error.response.data);
+        console.log(error.response?.data ?? error.message);
         
         throw new Error(error.response?.data?.message || 'Error al listar chats');
     }
@@ -50,7 +50,7 @@ export const obtenerMensajes=async(idChat)=>{
         const response=await axios(`${API_URL}/api/chats/${idChat}/mensajes`,getHeaders())
         return response.data;
     } catch (error) {
-        console.log(error.response.data);
+        console.log(error.response?.data ?? error.message);
         
         throw new Error(error.response?.data?.message || 'Error al obtener mensajes');
     }
