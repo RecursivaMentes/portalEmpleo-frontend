@@ -1,7 +1,9 @@
 import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
+import { Briefcase, Sparkles, Bot, LogOut } from "lucide-react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
+import Chatbot from "./pages/Chatbot"
 
 function App() {
   const navigate = useNavigate();
@@ -30,12 +32,17 @@ function App() {
               <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
                 <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
                   <NavLink to="/empleos" className={obtenerClaseEnlace}>
-                    <span>💼</span> Buscar empleos
+                    <Briefcase size={18} className="text-slate-400 group-hover:text-blue-600" /> Buscar empleos
                   </NavLink>
 
                   <NavLink to="/recomendaciones" className={obtenerClaseEnlace}>
-                    <span>✨</span> Mis recomendaciones
+                    <Sparkles size={18} className="text-slate-400" /> Mis recomendaciones
                   </NavLink>
+
+                  <NavLink to="/chatbot" className={obtenerClaseEnlace}>
+                    <Bot size={18} className="text-blue-500 animate-pulse" /> Chatbot
+                  </NavLink>
+
 
                   <button
                     type="button"
@@ -51,6 +58,7 @@ function App() {
                 <Routes>
                   <Route path="empleos" element={<Empleos />} />
                   <Route path="recomendaciones" element={<Recomendaciones />} />
+                  <Route path='chatbot' element={<Chatbot/>}/>
                   {/* Redirección por defecto si entran a '/' */}
                   <Route path="" element={<Navigate to="/empleos" replace />} />
                 </Routes>
