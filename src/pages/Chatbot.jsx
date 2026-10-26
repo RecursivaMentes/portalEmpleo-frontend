@@ -48,7 +48,7 @@ const Chatbot=()=> {
         e.preventDefault();
         if (!nuevoMensaje.trim() || !chatActivoId) return;
 
-        const mensajeUsuario = {Rol: 'user', Contenido: nuevoMensaje };
+        const mensajeUsuario = { rol: 'Usuario', contenido: nuevoMensaje };
   
   
         setMensajes(prev => [...prev, mensajeUsuario]);
@@ -56,10 +56,10 @@ const Chatbot=()=> {
         setEstaCargando(true); // Evita envíos dobles mientras responde la API
 
         try {
-            const respuesta = await enviarMensaje(chatActivoId, mensajeUsuario.Contenido);
+            const respuesta = await enviarMensaje(chatActivoId, mensajeUsuario.contenido);
     
             //respuesta del bot al chat
-            const mensajeBot = { Rol: 'assistant',Contenido: respuesta };
+            const mensajeBot = respuesta.respuesta;
             setMensajes(prev => [...prev, mensajeBot]);
             } catch (error) {
                 console.error("Error al enviar el mensaje:", error);
@@ -100,17 +100,17 @@ const Chatbot=()=> {
                         {/* Mensajes */}
                         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
                             {mensajes.map((m, index) => (
-                            <div key={m.id || index} style={{ display: 'flex', justifyContent: m.Rol === 'user' ? 'flex-end' : 'flex-start', margin: '15px 0' }}>
-                                <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: m.Rol === 'user' ? '#10a37f' : '#444654', lineHeight: '1.4' }}>
-                                    <strong>{m.Rol === 'user' ? 'Tú: ' : 'Ollama: '}</strong>           
-                                        {m.Contenido} 
+                            <div key={m.id || index} style={{ display: 'flex', justifyContent: m.rol === 'Usuario' ? 'flex-end' : 'flex-start', margin: '15px 0' }}>
+                                <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: m.rol === 'Usuario' ? '#10a37f' : '#444654', lineHeight: '1.4' }}>
+                                    <strong>{m.rol === 'Usuario' ? 'Tú: ' : 'Asistente: '}</strong>           
+                                        {m.contenido} 
                                 </div>
                             </div>
                             ))}
                             {estaCargando && (
                                 <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '15px 0' }}>
                                     <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: '#444654', color: '#aaa', lineHeight: '1.4' }}>
-                                        <strong>Ollama: </strong>
+                                        <strong>Asistente: </strong>
                                             <em>Pensando...</em>
                                     </div>
                                 </div>
@@ -124,7 +124,7 @@ const Chatbot=()=> {
                                 type="text" 
                                 value={nuevoMensaje}
                                 onChange={(e) => setNuevoMensaje(e.target.value)}
-                                placeholder="Escribe un mensaje a Ollama..."
+                                placeholder="Escribí tu mensaje..."
                                 style={{ flex: 1, padding: '12px', borderRadius: '5px', border: 'none', background: '#40414f', color: 'white', fontSize: '16px', outline: 'none' }}
                                 disabled={estaCargando}
                             />
@@ -135,7 +135,7 @@ const Chatbot=()=> {
                     </>
                 ) : (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa0a6' }}>
-                        <h2>Selecciona un chat o crea uno nuevo para empezar a hablar con Ollama.</h2>
+                        <h2>Selecciona un chat o crea uno nuevo para empezar a hablar con el asistente.</h2>
                     </div>
                 )}
             </div>
