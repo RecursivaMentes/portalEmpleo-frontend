@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { obtenerEmpleos } from "../services/empleosService";
+import { registrarPostulacion, obtenerPostulacionesUsuario } from "../services/postulacionesService";
+import { obtenerPerfil } from "../services/usuariosService";
 
 const filtrosIniciales = {
   busqueda: "",
@@ -41,6 +43,58 @@ export default function Empleos() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [empleoSeleccionado, setEmpleoSeleccionado] = useState(null);
+  const [postulando, setPostulando] = useState(false);
+  const [errorPostulacion, setErrorPostulacion] = useState("");
+  const [postulacionesRealizadas, setPostulacionesRealizadas] = useState([]);
+
+  const [usuario, setUsuario] = useState(null);
+  const [cargandoPostulaciones, setCargandoPostulaciones] = useState(true);
+  const [errorCargaPostulaciones, setErrorCargaPostulaciones] = useState("");
+
+  // Solo para pruebas locales hasta implementar la consulta de CV del usuario.
+  const CV_PRUEBA = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+
+  function abrirDetalle(empleo) {
+    setErrorPostulacion("");
+    setEmpleoSeleccionado(empleo);
+  }
+
+  function cerrarDetalle() {
+    if (postulando) return;
+    setErrorPostulacion("");
+    setEmpleoSeleccionado(null);
+  }
+
+  async function postularse() {
+    if (!empleoSeleccionado || postulando || cargandoPostulaciones || errorCargaPostulaciones) return;
+    if (!usuario) {
+      setErrorPostulacion("Debés iniciar sesión para postularte.");
+      return;
+    }
+
+    setPostulando(true);
+    setErrorPostulacion("");
+
+    try {
+      await registrarPostulacion(usuario.id, empleoSeleccionado.id, CV_PRUEBA);
+      setPostulacionesRealizadas((anteriores) =>
+        anteriores.includes(empleoSeleccionado.id)
+          ? anteriores
+          : [...anteriores, empleoSeleccionado.id]
+      );
+    } catch (err) {
+      setErrorPostulacion(err.message || "No se pudo registrar la postulación.");
+      if (err.message?.includes("ya se postuló")) {
+        setPostulacionesRealizadas((anteriores) =>
+          anteriores.includes(empleoSeleccionado.id)
+            ? anteriores
+            : [...anteriores, empleoSeleccionado.id]
+        );
+      }
+    } finally {
+      setPostulando(false);
+    }
+  }
 
   async function buscar(filtrosConsulta) {
     setCargando(true);
@@ -61,9 +115,33 @@ export default function Empleos() {
     buscar(filtrosIniciales);
   }, []);
 
+  useEffect(() => {
+    let activo = true;
+
+    async function cargarDatosUsuario() {
+      setCargandoPostulaciones(true);
+      setErrorCargaPostulaciones("");
+
+      try {
+        const perfil = await obtenerPerfil();
+        const postulaciones = await obtenerPostulacionesUsuario(perfil.id);
+        if (!activo) return;
+        setUsuario(perfil);
+        setPostulacionesRealizadas(postulaciones.map((p) => p.empleoId));
+      } catch (err) {
+        if (!activo) return;
+        setErrorCargaPostulaciones(err.message || "No se pudo cargar tu información.");
+      } finally {
+        if (activo) setCargandoPostulaciones(false);
+      }
+    }
+
+    cargarDatosUsuario();
+    return () => { activo = false; };
+  }, []);
+
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
-      {/* Encabezado */}
       <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white">
         <div className="max-w-6xl mx-auto px-5 py-14">
           <span className="inline-flex rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-medium mb-5">
@@ -82,7 +160,6 @@ export default function Empleos() {
       </section>
 
       <div className="max-w-6xl mx-auto px-5">
-        {/* Buscador */}
         <div className="-mt-7 relative z-10 bg-white rounded-2xl shadow-lg border border-slate-100 p-6 md:p-8">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-xl">
@@ -105,7 +182,6 @@ export default function Empleos() {
           />
         </div>
 
-        {/* Resultados */}
         <section className="mt-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
@@ -211,7 +287,7 @@ export default function Empleos() {
 
                         <button
                           type="button"
-                          onClick={() => setEmpleoSeleccionado(empleo)}
+                          onClick={() => abrirDetalle(empleo)}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-3 text-sm font-semibold cursor-pointer transition-colors"
                         >
                           Ver detalles →
@@ -226,11 +302,10 @@ export default function Empleos() {
         </section>
       </div>
 
-      {/* Modal de detalle */}
       {empleoSeleccionado && (
         <div
           className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4"
-          onClick={() => setEmpleoSeleccionado(null)}
+          onClick={cerrarDetalle}
         >
           <div
             role="dialog"
@@ -246,7 +321,7 @@ export default function Empleos() {
 
               <button
                 type="button"
-                onClick={() => setEmpleoSeleccionado(null)}
+                onClick={cerrarDetalle}
                 aria-label="Cerrar detalle"
                 className="text-slate-400 hover:text-slate-700 text-2xl cursor-pointer"
               >
@@ -270,13 +345,63 @@ export default function Empleos() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setEmpleoSeleccionado(null)}
-              className="mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold cursor-pointer"
-            >
-              Cerrar
-            </button>
+            <div className="mt-8 space-y-3">
+              {(() => {
+                const postulado = postulacionesRealizadas.includes(empleoSeleccionado.id);
+
+                return (
+                  <>
+                    {postulado && (
+                      <div role="status" className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl p-4 text-sm">
+                        ✓ Ya te postulaste a esta oferta.
+                      </div>
+                    )}
+
+                    {errorCargaPostulaciones && (
+                      <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+                        {errorCargaPostulaciones}
+                      </div>
+                    )}
+
+                    {errorPostulacion && (
+                      <div role="alert" className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+                        {errorPostulacion}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={postularse}
+                      disabled={postulado || postulando || cargandoPostulaciones || !!errorCargaPostulaciones || !usuario}
+                      className={`w-full py-3 rounded-xl font-semibold transition-colors ${
+                        postulado
+                          ? "bg-emerald-100 text-emerald-700 cursor-not-allowed"
+                          : postulando
+                            ? "bg-blue-400 text-white cursor-wait"
+                            : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                      }`}
+                    >
+                      {postulado
+                        ? "✓ Ya te postulaste"
+                        : postulando
+                          ? "Enviando postulación..."
+                          : cargandoPostulaciones
+                            ? "Verificando postulaciones..."
+                            : "Postularme →"}
+                    </button>
+                  </>
+                );
+              })()}
+
+              <button
+                type="button"
+                onClick={cerrarDetalle}
+                disabled={postulando}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold cursor-pointer disabled:opacity-50"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

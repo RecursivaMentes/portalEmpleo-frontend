@@ -6,8 +6,16 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
+      "/api/auth": {
+        target: "http://localhost:5078",
+        changeOrigin: true,
+      },
       "/api/empleos": {
-        target: "http://localhost:5082",
+        target: "http://localhost:5077",
+        changeOrigin: true,
+      },
+      "/api/postulaciones": {
+        target: "http://localhost:5077",
         changeOrigin: true,
       },
       "/api/recomendaciones": {
