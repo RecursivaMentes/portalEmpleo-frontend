@@ -12,3 +12,11 @@ export const iniciarSesion = async (usuario) => {
         throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
     }  
 }
+
+export const registrarse = async (usuario)=>{
+    try {
+        await axios.post(`${API_URL}/api/auth/register`, usuario)
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Error al registrarse');
+    }
+}

@@ -4,6 +4,7 @@ import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
+import Registrarse from "./pages/Registrarse";
 
 function App() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ function App() {
   return (
     <Routes>
       <Route path="/iniciarSesion" element={<IniciarSesion />} />
+      <Route path="/registrarse" element={<Registrarse/>} />
       <Route
         path="/*"
         element={
@@ -65,7 +67,7 @@ function App() {
               </main>
             </>
           ) : (
-            // Si intenta entrar a cualquier ruta sin token  al Login
+            // Si intenta entrar a cualquier ruta sin tokens al Login
             <Navigate to="/iniciarSesion" replace />
           )
         }

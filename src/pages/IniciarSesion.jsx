@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { iniciarSesion } from '../services/usuariosService';
+import Swal from 'sweetalert2'
 
 const IniciarSesion=()=> {
   const navigate = useNavigate();
@@ -19,7 +20,11 @@ const IniciarSesion=()=> {
       await iniciarSesion(input);
       navigate('/empleos');
     } catch (err) {
-      alert(err.message);
+      Swal.fire({
+        title:"Error al iniciar seisión",
+        text:err.message,
+        icon:"error"
+      })
     }
   };
 
@@ -90,6 +95,19 @@ const IniciarSesion=()=> {
             className="mt-7 w-full cursor-pointer rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">
             Iniciar sesión
           </button>
+          
+          <p className="mt-6 text-center text-sm text-slate-500">
+            ¿Todavía no tenés cuenta?
+          </p>
+
+          <button 
+            type="button" 
+            onClick={() => navigate("/registrarse")} 
+            className="mt-2 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Registrarse
+          </button>
+          
         </form>
       </div>
     </main>
