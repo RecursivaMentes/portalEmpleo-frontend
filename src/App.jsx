@@ -1,9 +1,10 @@
 import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
-import { Briefcase, Sparkles, Bot, LogOut } from "lucide-react";
+import { Briefcase, Sparkles, Bot, LogOut, FileText } from "lucide-react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
+import Cvs from "./pages/Cvs";
 
 function App() {
   const navigate = useNavigate();
@@ -43,6 +44,9 @@ function App() {
                     <Bot size={18} className="text-blue-500 animate-pulse" /> Chatbot
                   </NavLink>
 
+                  <NavLink to="/cvs" className={obtenerClaseEnlace}>
+                    <FileText size={18} /> Mis CV
+                  </NavLink>
 
                   <button
                     type="button"
@@ -61,6 +65,7 @@ function App() {
                   <Route path='chatbot' element={<Chatbot/>}/>
                   {/* Redirección por defecto si entran a '/' */}
                   <Route path="" element={<Navigate to="/empleos" replace />} />
+                  <Route path="cvs" element={<Cvs />} />
                 </Routes>
               </main>
             </>
