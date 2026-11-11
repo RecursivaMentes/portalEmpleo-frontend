@@ -114,3 +114,14 @@ export const descargarArchivoCv = async (id, nombre = "cv-original.pdf") => {
   
     URL.revokeObjectURL(url);
 };
+
+export const obtenerVistaPreviaCv = async (id) => {
+  const respuesta = await axios.get(`/api/cvs/${id}/descargar`, {
+    headers: obtenerHeaders(),
+    responseType: "blob",
+  });
+
+  return URL.createObjectURL(
+    new Blob([respuesta.data], { type: "application/pdf" })
+  );
+};

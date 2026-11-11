@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles } from "lucide-react";
-import { obtenerCvs, obtenerCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
+import { useEffect, useState, useRef } from "react";
+import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye } from "lucide-react";
+import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
 
 const formularioVacio = {
   titulo: "",
@@ -33,6 +33,14 @@ export default function Cvs() {
   const [errorIA, setErrorIA] = useState("");
   const [mensaje, setMensaje] = useState("");
 
+  const [vistaPrevia, setVistaPrevia] = useState(null);
+  const [cargandoVistaPrevia, setCargandoVistaPrevia] = useState(false);
+  const [notificacion, setNotificacion] = useState(null);
+  const [cvParaEliminar, setCvParaEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const temporizadorNotificacion = useRef(null);
+
   const cargarCvs = async () => {
     try {
       setError("");
@@ -50,6 +58,14 @@ export default function Cvs() {
 
   useEffect(() => {
     cargarCvs();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (temporizadorNotificacion.current) {
+        clearTimeout(temporizadorNotificacion.current);
+      }
+    };
   }, []);
 
   const cerrarFormulario = () => {
@@ -79,6 +95,22 @@ export default function Cvs() {
     setMensaje("");
     setVista("ia");
   };
+  
+  const mostrarNotificacion = (mensaje, tipo = "error") => {
+    if (temporizadorNotificacion.current) {
+      clearTimeout(temporizadorNotificacion.current);
+    }
+
+    setNotificacion({
+      mensaje,
+      tipo,
+    });
+
+    temporizadorNotificacion.current = setTimeout(() => {
+      setNotificacion(null);
+      temporizadorNotificacion.current = null;
+    }, 4000);
+  };
 
   const handleEditar = async (cv) => {
     try {
@@ -107,7 +139,7 @@ export default function Cvs() {
     e.preventDefault();
 
     if (!nuevoCv.titulo.trim()) {
-      alert("Ingresá un título para el CV.");
+      mostrarNotificacion("Ingresá un título para el CV.");
       return;
     }
 
@@ -129,7 +161,7 @@ export default function Cvs() {
           : "El currículum se creó correctamente."
       );
     } catch (err) {
-      alert(
+      mostrarNotificacion(
         err.response?.data?.message ||
           "No se pudo guardar el CV."
       );
@@ -137,21 +169,29 @@ export default function Cvs() {
       setGuardando(false);
     }
   };
+  
+  const handleEliminar = (cv) => {
+    setCvParaEliminar(cv);
+  };
 
-  const handleEliminar = async (cv) => {
-    if (!window.confirm(`¿Seguro que querés eliminar "${cv.titulo}"?`)) {
-      return;
-    }
+  const confirmarEliminacion = async () => {
+    if (!cvParaEliminar || eliminando) return;
 
     try {
-      await eliminarCv(cv.id);
+      setEliminando(true);
+
+      await eliminarCv(cvParaEliminar.id);
       await cargarCvs();
+
+      setCvParaEliminar(null);
       setMensaje("El currículum se eliminó correctamente.");
     } catch (err) {
-      alert(
+      mostrarNotificacion(
         err.response?.data?.message ||
           "No se pudo eliminar el CV."
       );
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -259,6 +299,34 @@ export default function Cvs() {
 
   const botonSecundario =
     "inline-flex items-center justify-center gap-2 border border-slate-300 px-5 py-2.5 rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer";
+  
+  const handleVistaPrevia = async (cv) => {
+    try {
+      setCargandoVistaPrevia(true);
+
+      const url = await obtenerVistaPreviaCv(cv.id);
+
+      setVistaPrevia({
+        titulo: cv.titulo,
+        url,
+      });
+    } catch (err) {
+      mostrarNotificacion(
+        err.response?.data?.message ||
+          "No se pudo cargar la vista previa."
+      );
+    } finally {
+      setCargandoVistaPrevia(false);
+    }
+  };
+
+  const cerrarVistaPrevia = () => {
+    if (vistaPrevia?.url) {
+      URL.revokeObjectURL(vistaPrevia.url);
+    }
+
+    setVistaPrevia(null);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -384,46 +452,75 @@ export default function Cvs() {
                             : "CV sin archivo adjunto"}
                         </p>
 
-                        <div className="flex flex-wrap gap-2 mt-4">
+                        
+                      {/* ACCIONES DEL CURRÍCULUM */}
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+
+                        {/* Vista previa */}
+                        <button
+                          type="button"
+                          onClick={() => handleVistaPrevia(cv)}
+                          disabled={cargandoVistaPrevia}
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    border border-blue-600 text-blue-600 rounded-lg
+                                    hover:bg-blue-50 disabled:opacity-50 cursor-pointer
+                                    text-sm transition-colors"
+                        >
+                          <Eye size={17} />
+                          Vista previa
+                        </button>
+
+                        {/* Descargar PDF */}
+                        <button
+                          type="button"
+                          onClick={() => handleDescargar(cv)}
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    bg-blue-600 text-white rounded-lg hover:bg-blue-700
+                                    cursor-pointer text-sm transition-colors"
+                        >
+                          <Download size={17} />
+                          Descargar PDF
+                        </button>
+
+                        {/* Archivo original, si existe */}
+                        {cv.tieneArchivo && (
                           <button
                             type="button"
-                            onClick={() => handleDescargar(cv)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                            onClick={() => handleDescargarOriginal(cv)}
+                            className="col-span-2 inline-flex items-center justify-center
+                                      gap-2 px-3 py-2.5 border border-blue-300
+                                      text-blue-600 rounded-lg hover:bg-blue-50
+                                      cursor-pointer text-sm transition-colors"
                           >
                             <Download size={17} />
-                            Descargar PDF
+                            Descargar archivo original
                           </button>
+                        )}
 
-                          {cv.tieneArchivo && (
-                            <button
-                              type="button"
-                              onClick={() => handleDescargarOriginal(cv)}
-                              className="inline-flex items-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 cursor-pointer"
-                            >
-                              <Download size={17} />
-                              Archivo original
-                            </button>
-                          )}
-                        </div>
+                        {/* Editar */}
+                        <button
+                          type="button"
+                          onClick={() => handleEditar(cv)}
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    border border-slate-300 text-slate-700 rounded-lg
+                                    hover:bg-slate-50 cursor-pointer text-sm transition-colors"
+                        >
+                          <Pencil size={16} />
+                          Editar
+                        </button>
 
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          <button
-                            type="button"
-                            onClick={() => handleEditar(cv)}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
-                          >
-                            <Pencil size={16} />
-                            Editar
-                          </button>
+                        {/* Eliminar */}
+                        <button
+                          type="button"
+                          onClick={() => handleEliminar(cv)}
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    border border-red-200 text-red-600 rounded-lg
+                                    hover:bg-red-50 cursor-pointer text-sm transition-colors"
+                        >
+                          <Trash2 size={16} />
+                          Eliminar
+                        </button>
 
-                          <button
-                            type="button"
-                            onClick={() => handleEliminar(cv)}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
-                          >
-                            <Trash2 size={16} />
-                            Eliminar
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -468,7 +565,6 @@ export default function Cvs() {
               <input
                 id="tituloCv"
                 type="text"
-                required
                 className={inputClase}
                 value={nuevoCv.titulo}
                 onChange={(e) =>
@@ -774,6 +870,131 @@ export default function Cvs() {
           </form>
         )}
       </div>
+
+      {vistaPrevia && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Vista previa de ${vistaPrevia.titulo}`}
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText
+                  size={20}
+                  className="text-blue-600 shrink-0"
+                />
+                <h2 className="font-semibold text-slate-800 truncate">
+                  {vistaPrevia.titulo}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={cerrarVistaPrevia}
+                className="p-2 rounded-lg hover:bg-slate-100 cursor-pointer"
+                aria-label="Cerrar vista previa"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <iframe
+              src={vistaPrevia.url}
+              title={`Vista previa de ${vistaPrevia.titulo}`}
+              className="w-full flex-1 border-0"
+            />
+
+            <div className="flex justify-end gap-3 px-5 py-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={cerrarVistaPrevia}
+                className="px-5 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {notificacion && (
+        <div
+          role="alert"
+          className={`fixed top-6 right-6 z-[60] flex items-start gap-3
+            max-w-md w-[calc(100%-3rem)] rounded-xl border p-4 shadow-xl
+            ${
+              notificacion.tipo === "success"
+                ? "bg-green-50 border-green-200 text-green-800"
+                : "bg-red-50 border-red-200 text-red-800"
+            }`}
+        >
+          <div className="flex-1 text-sm font-medium">
+            {notificacion.mensaje}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setNotificacion(null)}
+            className="shrink-0 hover:opacity-70 cursor-pointer"
+            aria-label="Cerrar notificación"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* CONFIRMAR ELIMINACIÓN */}
+      {cvParaEliminar && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-eliminar-cv"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+
+            <h2
+              id="titulo-eliminar-cv"
+              className="text-xl font-bold text-slate-800 mb-3"
+            >
+              ¿Eliminar currículum?
+            </h2>
+
+            <p className="text-slate-600 mb-6">
+              Estás por eliminar{" "}
+              <strong>{cvParaEliminar.titulo}</strong>.
+              Esta acción no se puede deshacer.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setCvParaEliminar(null)}
+                disabled={eliminando}
+                className="px-4 py-2 rounded-lg border border-slate-300
+                          hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmarEliminacion}
+                disabled={eliminando}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white
+                          hover:bg-red-700 disabled:opacity-50"
+              >
+                {eliminando ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
