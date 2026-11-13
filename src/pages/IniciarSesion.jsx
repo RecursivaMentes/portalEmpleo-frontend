@@ -5,13 +5,21 @@ import Swal from 'sweetalert2'
 
 const IniciarSesion=()=> {
   const navigate = useNavigate();
+  const[errors,setErrors]=useState({});
   const [input, setInput] = useState({
     email:"",
     password:""
   });
 
   const handleChange=(e)=>{
-    setInput({...input,[e.target.name]:e.target.value})
+    const {name, value}=e.target;
+    setInput({...input,[name]:value})
+    const Name = name.charAt(0).toUpperCase() + name.slice(1);
+
+    setErrors({
+      ...errors,
+      [Name]: null
+    });
   }
 
   const handleSubmit = async (e) => {
@@ -20,8 +28,9 @@ const IniciarSesion=()=> {
       await iniciarSesion(input);
       navigate('/empleos');
     } catch (err) {
+      setErrors(err.errors);
       Swal.fire({
-        title:"Error al iniciar seisión",
+        title:"Error al iniciar sesión",
         text:err.message,
         icon:"error"
       })
@@ -71,6 +80,7 @@ const IniciarSesion=()=> {
               placeholder="tu@correo.com"
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            {errors?.Email && (<p className="mt-1.5 text-sm text-red-600">{errors.Email[0]}</p>)}
           </div>
 
           <div className="mt-5">
@@ -89,6 +99,7 @@ const IniciarSesion=()=> {
               placeholder="Ingresá tu contraseña"
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            {errors?.Password && (<p className="mt-1.5 text-sm text-red-600">{errors.Password[0]}</p>)}
           </div>
 
           <button type="submit"

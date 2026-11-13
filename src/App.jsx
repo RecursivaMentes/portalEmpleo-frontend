@@ -1,12 +1,14 @@
 import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
-import { Briefcase, Sparkles, Bot, LogOut } from "lucide-react";
+import { Briefcase, Sparkles, Bot, LogOut, UserCircle, User, Lock, BriefcaseBusiness, FileText } from "lucide-react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
-import Registrarse from "./pages/Registrarse";
+import { useState } from "react";
+import FormDatosPersonales from "./components/FormDatosPersonales";
 
 function App() {
+  const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const navigate = useNavigate();
 
   // funcion para validar si el usuario esta autenticado
@@ -25,7 +27,7 @@ function App() {
   return (
     <Routes>
       <Route path="/iniciarSesion" element={<IniciarSesion />} />
-      <Route path="/registrarse" element={<Registrarse/>} />
+      <Route path="/registrarse" element={<FormDatosPersonales/>} />
       <Route
         path="/*"
         element={
@@ -44,15 +46,51 @@ function App() {
                   <NavLink to="/chatbot" className={obtenerClaseEnlace}>
                     <Bot size={18} className="text-blue-500 animate-pulse" /> Chatbot
                   </NavLink>
+                  <div className="relative flex items-center ml-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMostrarMenuUsuario(!mostrarMenuUsuario)
+                      }}
+                      className="p-1 text-slate-500 hover:text-blue-600 rounded-full transition-colors cursor-pointer"
+                    >
+                      <UserCircle size={32} className="text-slate-600 hover:text-blue-600 transition-colors" />
+                    </button>
 
+                    {/*menu de usuario */}
+                    {mostrarMenuUsuario && (
+                      <div className="absolute right-0 top-12 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                        <div className="px-4 py-2 border-b border-slate-100">
+                          <p className="text-xs text-slate-400 font-medium">Mi Cuenta</p>
+                        </div>
+                        
+                        <button onClick={() => { setMostrarMenuUsuario(false); navigate("/perfil/datos"); }} className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left">
+                          <User size={16} className="text-slate-400" /> Datos personales
+                        </button>
+                        
+                        <button onClick={() => { setMostrarMenuUsuario(false); navigate("/perfil/seguridad"); }} className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left">
+                          <Lock size={16} className="text-slate-400" /> Cambiar contraseña
+                        </button>
 
-                  <button
-                    type="button"
-                    onClick={cerrarSesion}
-                    className={`${enlaceBase} border-transparent text-slate-500 hover:text-red-700 ml-auto`}
-                  >
-                    <span>🚪</span> Cerrar Sesión
-                  </button>
+                        <button onClick={() => { setMostrarMenuUsuario(false); navigate("/perfil/laboral"); }} className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left">
+                          <BriefcaseBusiness size={16} className="text-slate-400" /> Perfil laboral
+                        </button>
+
+                        <button onClick={() => { setMostrarMenuUsuario(false); navigate("/perfil/cv"); }} className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left">
+                          <FileText size={16} className="text-slate-400" /> Mi CV / Currículum
+                        </button>
+
+                        <div className="border-t border-slate-100 my-1"></div>
+
+                        <button
+                          onClick={cerrarSesion}
+                          className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 cursor-pointer text-left font-medium"
+                        >
+                          <LogOut size={16} /> Cerrar Sesión
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </nav>
               </header>
 
@@ -61,6 +99,10 @@ function App() {
                   <Route path="empleos" element={<Empleos />} />
                   <Route path="recomendaciones" element={<Recomendaciones />} />
                   <Route path='chatbot' element={<Chatbot/>}/>
+                  <Route path="perfil/datos" element={<FormDatosPersonales actualizar={true} />} />
+                  {/* <Route path="perfil/seguridad" element={<CambiarContrasena />} />
+                  <Route path="perfil/laboral" element={<PerfilLaboral />} />
+                  <Route path="perfil/cv" element={<MiCurriculum />} /> */}
                   {/* Redirección por defecto si entran a '/' */}
                   <Route path="" element={<Navigate to="/empleos" replace />} />
                 </Routes>
