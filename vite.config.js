@@ -7,11 +7,19 @@ export default defineConfig({
   server: {
     proxy: {
       "/api/empleos": {
-        target: "http://localhost:5082",
+        target: "http://localhost:5077",
         changeOrigin: true,
       },
       "/api/recomendaciones": {
         target: "http://localhost:5080",
+        changeOrigin: true,
+      },
+      "/api/cvs": {
+        target: "http://localhost:5078",
+        changeOrigin: true,
+      },
+      "/api/generacion-cv": {
+        target: "http://localhost:5079",
         changeOrigin: true,
       },
     },
