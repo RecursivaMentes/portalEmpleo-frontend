@@ -5,6 +5,7 @@ import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
 import Cvs from "./pages/Cvs";
+import CambiarContrasena from "./pages/CambiarContrasena";
 
 function App() {
   const navigate = useNavigate();
@@ -57,15 +58,14 @@ function App() {
                   </button>
                 </nav>
               </header>
-
               <main>
                 <Routes>
                   <Route path="empleos" element={<Empleos />} />
                   <Route path="recomendaciones" element={<Recomendaciones />} />
-                  <Route path='chatbot' element={<Chatbot/>}/>
-                  {/* Redirección por defecto si entran a '/' */}
-                  <Route path="" element={<Navigate to="/empleos" replace />} />
+                  <Route path="chatbot" element={<Chatbot />} />
                   <Route path="cvs" element={<Cvs />} />
+                  <Route path="cambiar-contrasena" element={<CambiarContrasena />}/>
+                  <Route path="" element={<Navigate to="/empleos" replace />} />
                 </Routes>
               </main>
             </>
