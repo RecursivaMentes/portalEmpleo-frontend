@@ -28,6 +28,7 @@ const extraerCampos = (errores) => {
 export function obtenerMensajeErrorCv(error, alternativo = "No se pudo completar la operación.") {
   const respuesta = error?.response;
   if (!respuesta) {
+    if (!error?.isAxiosError && typeof error?.message === "string" && error.message.trim()) return error.message.trim();
     if (error?.code === "ERR_CANCELED") return "La operación fue cancelada.";
     if (error?.code === "ECONNABORTED") return "La solicitud tardó demasiado. Verificá si se completó antes de reintentar.";
     return "No pudimos comunicarnos con el servidor. Revisá tu conexión e intentá nuevamente.";
@@ -40,4 +41,19 @@ export function obtenerMensajeErrorCv(error, alternativo = "No se pudo completar
   const mensaje = limpiar(datos?.message) || limpiar(datos?.mensaje) || limpiar(datos?.title) || limpiar(datos?.detail);
   if (mensaje && mensaje !== "One or more validation errors occurred.") return mensaje;
   return fallbackPorEstado[respuesta.status] || alternativo;
+}
+
+/** Recupera mensajes JSON de errores HTTP en descargas de archivos CV. */
+export async function obtenerMensajeErrorDescargaCv(error, alternativo) {
+  const datos = error?.response?.data;
+  if (typeof Blob !== "undefined" && datos instanceof Blob && datos.size > 0 && datos.size < 65536) {
+    const tipo = String(datos.type || "").toLowerCase();
+    if (tipo.includes("json")) {
+      try {
+        const json = JSON.parse(await datos.text());
+        return obtenerMensajeErrorCv({ ...error, response: { ...error.response, data: json } }, alternativo);
+      } catch { /* Se muestra el error HTTP de respaldo. */ }
+    }
+  }
+  return obtenerMensajeErrorCv(error, alternativo);
 }

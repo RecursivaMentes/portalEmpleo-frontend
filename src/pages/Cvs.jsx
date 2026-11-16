@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye } from "lucide-react";
 import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
-import { obtenerMensajeErrorCv } from "../services/cvErrors";
+import { obtenerMensajeErrorCv, obtenerMensajeErrorDescargaCv } from "../services/cvErrors";
 
 const formularioVacio = {
   titulo: "",
@@ -205,7 +205,7 @@ export default function Cvs() {
     try {
       await descargarCv(cv.id, `${cv.titulo}.pdf`);
     } catch (err) {
-      mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo descargar el PDF."));
+      mostrarNotificacion(await obtenerMensajeErrorDescargaCv(err, "No se pudo descargar el PDF."));
     }
   };
 
@@ -213,7 +213,7 @@ export default function Cvs() {
     try {
       await descargarArchivoCv(cv.id, cv.titulo);
     } catch (err) {
-      mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo descargar el archivo original."));
+      mostrarNotificacion(await obtenerMensajeErrorDescargaCv(err, "No se pudo descargar el archivo original."));
     }
   };
 
@@ -231,7 +231,7 @@ export default function Cvs() {
       return;
     }
     if (archivoCv.size === 0) {
-      mostrarNotificacion("El archivo está vacío. SeleccionÃ¡ otro.");
+      mostrarNotificacion("El archivo está vacío. Seleccioná otro.");
       return;
     }
     if (archivoCv.size > 5 * 1024 * 1024) {
@@ -309,7 +309,7 @@ export default function Cvs() {
       });
     } catch (err) {
       mostrarNotificacion(
-        obtenerMensajeErrorCv(err, "No se pudo cargar la vista previa.")
+        await obtenerMensajeErrorDescargaCv(err, "No se pudo cargar la vista previa.")
       );
     } finally {
       setCargandoVistaPrevia(false);
@@ -682,7 +682,7 @@ export default function Cvs() {
                 htmlFor="archivoCv"
                 className="block text-sm font-medium mb-2"
               >
-                Archivo PDF o Word (.docx), mÃ¡ximo 5 MB
+                Archivo PDF o Word (.docx), máximo 5 MB
               </label>
 
               <input
@@ -838,7 +838,13 @@ export default function Cvs() {
                 <p className="text-sm text-amber-800">Copiá el contenido antes de salir de esta pantalla. No se guardó como currículum.</p>
                 <textarea aria-label="Texto generado recuperado" readOnly value={textoRecuperadoIA}
                   rows={9} className="w-full rounded-lg border border-amber-200 bg-white p-3 text-sm text-slate-800" />
-                <button type="button" onClick={() => navigator.clipboard?.writeText(textoRecuperadoIA).catch(() => mostrarNotificacion("No se pudo copiar. Seleccioná el texto manualmente."))}
+                <button type="button" onClick={() => {
+                    if (!navigator.clipboard?.writeText) {
+                      mostrarNotificacion("La copia automática no está disponible. Seleccioná el texto manualmente.");
+                      return;
+                    }
+                    navigator.clipboard.writeText(textoRecuperadoIA).catch(() => mostrarNotificacion("No se pudo copiar. Seleccioná el texto manualmente."));
+                  }}
                   className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800">Copiar texto</button>
               </section>
             )}

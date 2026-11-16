@@ -91,7 +91,7 @@ export const descargarCv = async (id, nombre = "curriculum.pdf") => {
   enlace.click();
   enlace.remove();
 
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 export const generarCvIA = async (datos) => {
