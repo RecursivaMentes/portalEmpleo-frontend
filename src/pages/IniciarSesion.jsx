@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { iniciarSesion } from '../services/usuariosService';
 import Swal from 'sweetalert2'
 
-const IniciarSesion=()=> {
+const IniciarSesion = ({setAutenticado}) => {
   const navigate = useNavigate();
   const[errors,setErrors]=useState({});
+
   const [input, setInput] = useState({
-    email:"",
-    password:""
+    email: "",
+    password: "",
   });
 
   const handleChange=(e)=>{
@@ -24,9 +25,11 @@ const IniciarSesion=()=> {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       await iniciarSesion(input);
-      navigate('/empleos');
+      setAutenticado(true)
+      navigate("/empleos");
     } catch (err) {
       setErrors(err.errors);
       Swal.fire({
@@ -123,6 +126,6 @@ const IniciarSesion=()=> {
       </div>
     </main>
   );
-}
+};
 
 export default IniciarSesion;

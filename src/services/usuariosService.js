@@ -48,3 +48,18 @@ export const cerrarSesion=async()=>{
         throw error.response?.data || { message: "Error al cerrar sesión" };
     }
 }
+
+export const cambiarContrasena = async (formulario) => {
+    const datos = {
+      currentPassword: formulario.contrasenaActual,
+      newPassword: formulario.nuevaContrasena,
+      confirmPassword: formulario.confirmarContrasena,
+    };
+  
+    try {
+      const respuesta = await axios.put(`${API_URL}/api/auth/change-password`,datos,config);
+      return respuesta.data;
+    } catch (error) {
+        throw new Error(error.response.data.message||"No se pudo cambiar la contraseña.")
+    }
+};  

@@ -9,6 +9,9 @@ import FormDatosPersonales from "./components/FormDatosPersonales";
 import Cvs from "./pages/Cvs";
 import { cerrarSesion, obtenerDatosPersonales } from "./services/usuariosService";
 
+import CambiarContrasena from "./pages/CambiarContrasena";
+
+
 function App() {
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
   const [autenticado,setAutenticado]=useState(null)
@@ -55,7 +58,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/iniciarSesion" element={<IniciarSesion />} />
+      <Route path="/iniciarSesion" element={<IniciarSesion setAutenticado={setAutenticado} />} />
       <Route path="/registrarse" element={<FormDatosPersonales />} />
       <Route
         path="/*"
@@ -105,7 +108,7 @@ function App() {
                         <button
                           onClick={() => {
                             setMostrarMenuUsuario(false);
-                            navigate("/perfil/seguridad");
+                            navigate("/perfil/cambiar-contrasena");
                           }}
                           className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
                         >
@@ -125,7 +128,7 @@ function App() {
                         <button
                           onClick={() => {
                             setMostrarMenuUsuario(false);
-                            navigate("/cvs");
+                            navigate("/perfil/cvs");
                           }}
                           className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
                         >
@@ -145,16 +148,17 @@ function App() {
                   </div>
                 </nav>
               </header>
-
               <main>
                 <Routes>
                   <Route path="empleos" element={<Empleos />} />
                   <Route path="recomendaciones" element={<Recomendaciones />} />
                   <Route path="chatbot" element={<Chatbot />} />
+
                   <Route path="perfil/datos" element={<FormDatosPersonales actualizar={true} />} />
-                  <Route path="cvs" element={<Cvs />} />
-                  {/* <Route path="perfil/seguridad" element={<CambiarContrasena />} />
-                  <Route path="perfil/laboral" element={<PerfilLaboral />} /> */}
+                  <Route path="perfil/cvs" element={<Cvs />} />
+                  {/*<Route path="perfil/laboral" element={<PerfilLaboral />} /> */}
+                  <Route path="perfil/cambiar-contrasena" element={<CambiarContrasena />}/>
+
                   <Route path="" element={<Navigate to="/empleos" replace />} />
                 </Routes>
               </main>
