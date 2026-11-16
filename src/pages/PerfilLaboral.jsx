@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ConfirmacionAccion from '../components/ConfirmacionAccion';
 import { ChevronDown, ChevronUp, LoaderCircle, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
 import { obtenerPerfilLaboral, guardarPerfilLaboral } from '../services/perfilLaboralService';
 
@@ -110,6 +112,8 @@ function preparar(datos) {
   };
 }
 export default function PerfilLaboral() {
+  const navigate = useNavigate();
+  const [confirmacion, setConfirmacion] = useState(null);
   const [datos, setDatos] = useState(vacio);
   const [original, setOriginal] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -131,17 +135,40 @@ export default function PerfilLaboral() {
   }, [recarga]);
   useEffect(() => {
     if (!modificado) return;
+    // Los navegadores exigen su aviso nativo para cerrar la pestaña o recargar.
     const advertir = (e) => { e.preventDefault(); e.returnValue = ''; };
     const confirmarEnlaces = (e) => {
       const enlace = e.target.closest?.('a[href]');
-      if (enlace && enlace.origin === window.location.origin && !window.confirm('Tenés cambios sin guardar en tu perfil laboral. ¿Querés salir sin guardarlos?')) {
+      if (enlace && enlace.origin === window.location.origin) {
         e.preventDefault(); e.stopPropagation();
+        setConfirmacion({ tipo: 'navegar', destino: enlace.pathname + enlace.search + enlace.hash });
       }
     };
     window.addEventListener('beforeunload', advertir);
     document.addEventListener('click', confirmarEnlaces, true);
     return () => { window.removeEventListener('beforeunload', advertir); document.removeEventListener('click', confirmarEnlaces, true); };
   }, [modificado]);
+  useEffect(() => {
+    if (!Object.keys(errores).length) return;
+    const timer = window.setTimeout(() => {
+      const primerError = document.querySelector('[aria-invalid="true"], [data-error-experiencias="true"]');
+      primerError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (primerError?.matches('input,select,textarea')) primerError.focus({ preventScroll: true });
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [errores, abiertas]);
+  function confirmarAccion() {
+    const pendiente = confirmacion;
+    setConfirmacion(null);
+    if (!pendiente) return;
+    if (pendiente.tipo === 'descartar') { setDatos(structuredClone(original)); setErrores({}); setError(''); }
+    if (pendiente.tipo === 'experiencias') setDatos((d) => ({ ...d, sinExperiencia: true, experiencias: [] }));
+    if (pendiente.tipo === 'navegar') {
+      // Evita el aviso nativo en una navegacion interna sin perder la proteccion de recarga.
+      setOriginal(null);
+      navigate(pendiente.destino);
+    }
+  }
   function cambiar(campo, valor) { setDatos((d) => ({ ...d, [campo]: valor })); setErrores({}); }
   function cambiarLista(lista, indice, campo, valor) {
     setDatos((d) => ({ ...d, [lista]: d[lista].map((item, i) => i === indice ? { ...item, [campo]: valor } : item) }));
@@ -150,16 +177,17 @@ export default function PerfilLaboral() {
   function agregar(lista, plantilla) { setDatos((d) => ({ ...d, [lista]: [...d[lista], plantilla()] })); setErrores({}); }
   function quitar(lista, indice) { setDatos((d) => ({ ...d, [lista]: d[lista].filter((_, i) => i !== indice) })); setErrores({}); }
   function alternar(nombre) { setAbiertas((actual) => ({ ...actual, [nombre]: !actual[nombre] })); }
-  function descartar() { if (modificado && !window.confirm('¿Descartar los cambios sin guardar?')) return; setDatos(structuredClone(original)); setErrores({}); setError(''); }
+  function descartar() { if (modificado) { setConfirmacion({ tipo: 'descartar' }); return; } setDatos(structuredClone(original)); setErrores({}); setError(''); }
   async function guardar(e) {
     e.preventDefault();
-    if (guardando || cargando || !modificado) return;
+    if (guardando || cargando) return;
+    if (!modificado) { setError('No hay cambios nuevos para guardar.'); return; }
     const encontrados = validar(datos);
     setErrores(encontrados); setError('');
     if (Object.keys(encontrados).length) {
       const secciones = Object.keys(encontrados).map((x) => x.split('.')[0]);
       setAbiertas((actual) => Object.fromEntries(Object.entries(actual).map(([k, v]) => [k, v || secciones.includes(k)])));
-      setError('Revisá los campos señalados antes de guardar.');
+      setError('');
       return;
     }
     setGuardando(true);
@@ -182,8 +210,8 @@ export default function PerfilLaboral() {
         {original && <form noValidate onSubmit={guardar} className="space-y-4">
           <Seccion titulo="Resumen profesional" cantidad="Opcional" abierta={abiertas.resumen} alAlternar={() => alternar('resumen')}><Area titulo="Sobre vos" valor={datos.resumen} onChange={(v) => cambiar('resumen', v)} placeholder="Contá brevemente tu experiencia y objetivos." /></Seccion>
           <Seccion titulo="Experiencia laboral" cantidad={datos.experiencias.length} abierta={abiertas.experiencias} alAlternar={() => alternar('experiencias')}>
-            <label className="mb-5 flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" checked={datos.sinExperiencia} onChange={(e) => { if (e.target.checked && datos.experiencias.length && !window.confirm('Se quitarán las experiencias cargadas. ¿Continuar?')) return; setDatos((d) => ({ ...d, sinExperiencia: e.target.checked, experiencias: e.target.checked ? [] : d.experiencias })); }} /> Todavía no tengo experiencia laboral</label>
-            {errorDe('experiencias') && <p role="alert" className="mb-3 text-sm text-red-700">{errorDe('experiencias')}</p>}
+            <label className="mb-5 flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" checked={datos.sinExperiencia} onChange={(e) => { if (e.target.checked && datos.experiencias.length) { setConfirmacion({ tipo: 'experiencias' }); return; } setDatos((d) => ({ ...d, sinExperiencia: e.target.checked, experiencias: e.target.checked ? [] : d.experiencias })); }} /> Todavía no tengo experiencia laboral</label>
+            {errorDe('experiencias') && <p role="alert" data-error-experiencias="true" className="mb-3 text-sm text-red-700">{errorDe('experiencias')}</p>}
             {!datos.sinExperiencia && <div className="space-y-5">{datos.experiencias.map((e, i) => <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 p-4"><div className="mb-4 flex items-center justify-between"><h3 className="font-semibold text-slate-900">Experiencia {i + 1}</h3><button type="button" onClick={() => quitar('experiencias', i)} className="flex items-center gap-1 text-sm text-red-700 cursor-pointer"><Trash2 size={16}/>Eliminar</button></div><div className="grid gap-4 sm:grid-cols-2">
               <Texto titulo="Empresa" valor={e.empresa} onChange={(v) => cambiarLista('experiencias', i, 'empresa', v)} maxLength={150} error={errorDe(`experiencias.${i}.empresa`)} required />
               <Texto titulo="Puesto" valor={e.puesto} onChange={(v) => cambiarLista('experiencias', i, 'puesto', v)} maxLength={120} error={errorDe(`experiencias.${i}.puesto`)} required />
@@ -213,9 +241,10 @@ export default function PerfilLaboral() {
             <div className="space-y-3">{datos.idiomas.map((i, n) => <div key={n} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-end"><div className="flex-1"><Texto titulo="Idioma" valor={i.idioma} onChange={(v) => cambiarLista('idiomas', n, 'idioma', v)} maxLength={100} error={errorDe(`idiomas.${n}.idioma`)} required /></div><div className="sm:w-44"><Seleccion titulo="Nivel" valor={i.nivel} onChange={(v) => cambiarLista('idiomas', n, 'nivel', v)} opciones={nivelesIdioma} error={errorDe(`idiomas.${n}.nivel`)} required /></div><button type="button" aria-label={`Eliminar idioma ${n + 1}`} className={`${botonSecundario} text-red-700`} onClick={() => quitar('idiomas', n)}><Trash2 size={18}/></button></div>)}
             <button type="button" className={botonSecundario} onClick={() => agregar('idiomas', nuevoIdioma)}><Plus size={17}/>Agregar idioma</button></div>
           </Seccion>
-          <div className="flex flex-wrap items-center justify-end gap-3 pt-3"><button type="button" disabled={!modificado || guardando} onClick={descartar} className={botonSecundario}><RotateCcw size={17}/>Descartar cambios</button><button type="submit" disabled={!modificado || guardando} className={botonPrincipal}>{guardando ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18}/>} {guardando ? 'Guardando...' : 'Guardar cambios'}</button></div>
+          <div className="space-y-3">{error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}<div className="flex flex-wrap items-center justify-end gap-3 pt-3"><button type="button" disabled={!modificado || guardando} onClick={descartar} className={botonSecundario}><RotateCcw size={17}/>Descartar cambios</button><button type="submit" disabled={guardando || cargando} className={botonPrincipal}>{guardando ? <LoaderCircle size={18} className="animate-spin" /> : <Save size={18}/>} {guardando ? 'Guardando...' : 'Guardar cambios'}</button></div></div>
         </form>}
       </>}
     </div>
+    <ConfirmacionAccion abierto={!!confirmacion} titulo="Cambios sin guardar" mensaje={confirmacion?.tipo === 'experiencias' ? 'Al indicar que no tenés experiencia, se quitarán las experiencias cargadas. ¿Querés continuar?' : 'Tenés cambios sin guardar. ¿Querés descartarlos?'} confirmar={confirmacion?.tipo === 'experiencias' ? 'Quitar experiencias' : 'Descartar cambios'} peligro onConfirmar={confirmarAccion} onCancelar={() => setConfirmacion(null)}/>
   </main>;
 }
