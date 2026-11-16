@@ -85,7 +85,7 @@ const FormDatosPersonales=({actualizar=false})=> {
     } catch (err) {
       setErrors(err?.errors)
       Swal.fire({
-        title:`Error al ${actualizar? "actualizar datos personales" : "registrarse"}`,
+        title:`Error al ${actualizar? "actualizar datos" : "registrarse"}`,
         text:err.message?err.message:null,
         icon:"error"
       })
