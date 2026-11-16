@@ -25,6 +25,8 @@ async function ejecutar(metodo, ruta, datos, config = {}) {
 }
 
 export const misPostulaciones = () => ejecutar('get', '/me');
+export const retirarPostulacion = (id) => ejecutar('post', '/' + encodeURIComponent(id) + '/estado', { estado: 'Retirada' });
+export const eliminarPostulacionHistorial = (id) => ejecutar('delete', '/' + encodeURIComponent(id));
 export const postularManualmente = (empleoId, cvId, textoPresentacion) => ejecutar('post', '/', {
   usuarioId: obtenerUsuarioIdActual(), empleoId, cvId, textoPresentacion: textoPresentacion.trim() || null,
 });
@@ -54,7 +56,7 @@ export function estadoOfertas() {
   if (!cacheOfertas || Date.now() > cacheHasta) {
     cacheHasta = Date.now() + 3000;
     cacheOfertas = Promise.allSettled([misPostulaciones(), pendientes()]).then(([r, p]) => ({
-      realizadas: r.status === 'fulfilled' && Array.isArray(r.value) ? r.value : [],
+      realizadas: r.status === 'fulfilled' && Array.isArray(r.value) ? r.value.filter((p) => p.estado !== 'Retirada' && p.estado !== 5) : [],
       guardadas: p.status === 'fulfilled' && Array.isArray(p.value) ? p.value : [],
       completo: r.status === 'fulfilled' && p.status === 'fulfilled',
     }));

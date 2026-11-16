@@ -130,8 +130,8 @@ export default function Empleos({ onSolicitarLogin }) {
           </div>
 
           {cargando && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
-              Buscando las mejores oportunidades...
+            <div aria-label="Cargando ofertas" role="status" className="space-y-4 animate-pulse">
+              {[1, 2, 3].map((n) => <div key={n} className="h-40 rounded-2xl border border-slate-200 bg-slate-200"/>)}
             </div>
           )}
 

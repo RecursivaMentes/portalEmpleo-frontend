@@ -88,3 +88,16 @@ export const actualizarDatosPersonales = async (datos) => {
     throw interpretarError(error, 'No se pudieron guardar los cambios.');
   }
 };
+
+export async function cambiarContrasena(datos) {
+  try { const { data } = await api.post('/api/auth/change-password', datos, configAutorizada()); return data; }
+  catch (error) { if (error.response) throw interpretarError(error, 'No se pudo cambiar la contraseña.'); throw new Error(error.message || 'No se pudo conectar con el servidor.'); }
+}
+export async function solicitarRecuperacion(email) {
+  try { const { data } = await api.post('/api/auth/forgot-password', { email }); return data; }
+  catch (error) { if (error.response) throw interpretarError(error, 'No se pudo solicitar la recuperación.'); throw new Error('No se pudo conectar con el servidor.'); }
+}
+export async function restablecerContrasena(datos) {
+  try { const { data } = await api.post('/api/auth/reset-password', datos); return data; }
+  catch (error) { if (error.response) throw interpretarError(error, 'No se pudo restablecer la contraseña.'); throw new Error('No se pudo conectar con el servidor.'); }
+}

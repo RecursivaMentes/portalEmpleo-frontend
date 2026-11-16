@@ -10,6 +10,8 @@ import Cvs from './pages/Cvs';
 import FormDatosPersonales from './components/FormDatosPersonales';
 import Postulaciones from './pages/Postulaciones';
 import PerfilLaboral from './pages/PerfilLaboral';
+import CambiarContrasena from './pages/CambiarContrasena';
+import RecuperarContrasena from './pages/RecuperarContrasena';
 import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual } from './services/usuariosService';
@@ -31,6 +33,7 @@ function MenuUsuario({ salir }) {
   const opciones = [
     ['/perfil/datos', 'Datos personales', User],
     ['/perfil/laboral', 'Perfil laboral', BriefcaseBusiness],
+    ['/perfil/seguridad', 'Cambiar contraseña', User],
     ['/cvs', 'Mis CV', FileText],
   ];
   return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} >
@@ -92,6 +95,7 @@ export default function App() {
     <Routes>
       <Route path="/iniciarSesion" element={<IniciarSesion/>}/>
       <Route path="/registrarse" element={<Registrarse/>}/>
+      <Route path="/recuperar-clave" element={<RecuperarContrasena/>}/>
       <Route path="/*" element={<>
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40"><nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
           <NavLink to="/empleos" className={claseEnlace}><Briefcase size={18} className="text-slate-400"/>Buscar empleos</NavLink>
@@ -110,6 +114,7 @@ export default function App() {
           <Route path="postulaciones" element={<Navigate to="/postulaciones/pendientes" replace/>}/>
           <Route path="perfil/datos" element={acceso(<FormDatosPersonales actualizar/>)}/>
           <Route path="perfil/laboral" element={acceso(<PerfilLaboral/>)}/>
+          <Route path="perfil/seguridad" element={acceso(<CambiarContrasena/>)}/>
           <Route path="" element={<Navigate to="/empleos" replace/>}/>
           <Route path="*" element={<Navigate to="/empleos" replace/>}/>
         </Routes></main>

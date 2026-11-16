@@ -23,7 +23,7 @@ export default function AccionesPostulacion({ empleo, onSolicitarLogin }) {
     let activo = true;
     estadoOfertas().then(({ realizadas, guardadas, completo }) => {
       if (!activo) return;
-      setPostulado(realizadas.some((p) => p.empleoId === empleoId));
+      setPostulado(realizadas.some((p) => p.empleoId === empleoId && p.estado !== 'Retirada' && p.estado !== 5));
       setGuardado(guardadas.some((p) => p.empleoId === empleoId));
       setVerificado(completo);
     }).catch(() => { if (activo) setVerificado(false); });

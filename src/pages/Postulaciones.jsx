@@ -11,6 +11,7 @@ import AccionesPostulacion from '../components/AccionesPostulacion';
 import ConfirmacionAccion from '../components/ConfirmacionAccion';
 import DetalleOferta from '../components/DetalleOferta';
 import ConfiguracionAgenteCompacta from '../components/ConfiguracionAgenteCompacta';
+import { TituloPostulacion, AccionesSeguimiento } from '../components/SeguimientoRealizadas';
 
 const fecha = (valor) => valor ? new Date(valor).toLocaleDateString('es-AR') : 'Sin fecha';
 const descripcionEstado = (v) => ({
@@ -25,6 +26,28 @@ const primario = 'rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-
 function Esqueleto() { return <div className="space-y-4 animate-pulse">{[1, 2, 3].map((x) => <div key={x} className="h-32 rounded-2xl bg-slate-200"/>)}</div>; }
 function ErrorConsulta({ mensaje, recargar }) { return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700"><p>{mensaje}</p><button onClick={recargar} className="mt-3 font-semibold underline cursor-pointer">Reintentar</button></div>; }
 
+function HistorialPostulacion({ item }) {
+  const eventos = Array.isArray(item.historial) ? item.historial : [];
+  const mostrarFecha = (valor) => {
+    if (!valor) return 'Sin fecha';
+    const fechaEvento = new Date(valor);
+    return Number.isNaN(fechaEvento.getTime())
+      ? 'Fecha no disponible'
+      : fechaEvento.toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' });
+  };
+  return <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+    <summary className="cursor-pointer font-semibold text-slate-800">
+      Seguimiento e historial ({eventos.length} {eventos.length === 1 ? 'evento' : 'eventos'})
+    </summary>
+    {eventos.length > 0 ? <ol className="mt-4 space-y-3 border-l-2 border-blue-200 pl-4">
+      {eventos.map((evento, indice) => <li key={`${evento.estado}-${evento.fechaUtc}-${indice}`} className="relative">
+        <span aria-hidden="true" className="absolute -left-[23px] top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-600" />
+        <p className="font-semibold text-slate-900">{String(evento.estado || 'Sin estado')}</p>
+        <time className="text-slate-600" dateTime={evento.fechaUtc || undefined}>{mostrarFecha(evento.fechaUtc)}</time>
+      </li>)}
+    </ol> : <p className="mt-3 text-slate-600">No se registraron eventos de seguimiento.</p>}
+  </details>;
+}
 function Revision({ preparacion, refrescar }) {
   const [actual, setActual] = useState(preparacion);
   const [cvs, setCvs] = useState([]);
@@ -125,7 +148,7 @@ export default function Postulaciones() {
     finally { setQuitando(null); }
   }
   async function descargar(id) {
-    try { const archivo = await obtenerCvEnviado(id); const url = URL.createObjectURL(archivo); const a = document.createElement('a'); a.href = url; a.download = `cv-enviado-${id}.pdf`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+    try { const archivo = await obtenerCvEnviado(id); const url = URL.createObjectURL(archivo); const a = document.createElement('a'); a.href = url; a.download = `cv-enviado-${id}.${archivo.type?.includes("wordprocessingml") ? "docx" : "pdf"}`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     catch (err) { avisar(err.message, 'error'); }
   }
   const titulos = { pendientes: 'Pendientes de postulación', aprobaciones: 'Requieren tu aprobación', realizadas: 'Postulaciones realizadas' };
@@ -134,15 +157,15 @@ export default function Postulaciones() {
     <div className="mx-auto max-w-6xl px-5 py-8">{pestaña === 'pendientes' && <ConfiguracionAgenteCompacta alGuardar={cargar}/>}<div className="mb-5 flex justify-end"><button onClick={cargar} className={`${btn} flex items-center gap-2`} disabled={cargando}><RefreshCw size={16}/>Actualizar</button></div>
       {cargando ? <Esqueleto/> : error ? <ErrorConsulta mensaje={error} recargar={cargar}/> : visibles.length === 0 ? <div className={`${tarjeta} text-center text-slate-600`}>No hay elementos en esta sección. <Link to="/empleos" className="font-semibold text-blue-700 underline">Buscar empleos</Link></div> : <div className="space-y-4">
         {visibles.map((item) => <article key={item.id || item.empleoId} className={tarjeta}>
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-bold text-slate-900">{item.titulo || `Oferta ${item.empleoId}`}</h2><p className="mt-1 text-sm text-slate-500">{pestaña === 'pendientes' ? `Guardada: ${fecha(item.fechaAgregado)}` : pestaña === 'realizadas' ? `Enviada: ${fecha(item.fechaPostulacion)}` : `Preparación: ${descripcionEstado(item.estado)}`}</p></div>
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-bold text-slate-900">{item.titulo || <TituloPostulacion empleoId={item.empleoId}/>}</h2><p className="mt-1 text-sm text-slate-500">{pestaña === 'pendientes' ? `Guardada: ${fecha(item.fechaAgregado)}` : pestaña === 'realizadas' ? `Enviada: ${fecha(item.fechaPostulacion)}` : `Preparación: ${descripcionEstado(item.estado)}`}</p></div>
             {pestaña === 'pendientes' && <div className="text-sm"><p>Prioridad: <strong>{item.prioridad ?? 'No calculada'}</strong></p><p>Compatibilidad: <strong>{item.compatibilidad == null ? 'No calculada' : `${item.compatibilidad}%`}</strong></p><p>Cierre: {fecha(item.fechaCierre)}</p></div>}
-            {pestaña === 'realizadas' && <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">{String(item.estado ?? 'Enviada')}</span>}
+            {pestaña === 'realizadas' && <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">{({ Pendiente: 'Enviada Â· pendiente de revisión', EnRevision: 'En revisión', Entrevista: 'Entrevista', Aceptada: 'Aceptada', Rechazada: 'Rechazada', Retirada: 'Retirada' })[item.estado] || item.estado || 'Enviada'}</span>}
           </div>
           {pestaña === 'pendientes' && <div className="mt-4 space-y-3">{!item.disponible && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{item.motivoNoDisponible || 'Esta oferta no está disponible.'}</p>}
             <button type="button" onClick={() => setDetalle(item)} className={`${btn} mr-2`}>Ver detalles</button>{item.disponible && <AccionesPostulacion empleo={{ id: item.empleoId, titulo: item.titulo }}/>}<button disabled={quitando === item.empleoId} className={`${btn} mt-2`} onClick={() => quitar(item.empleoId)}>{quitando === item.empleoId ? 'Quitando...' : 'Quitar de pendientes'}</button>
           </div>}
           {pestaña === 'aprobaciones' && <div className="mt-4"><button className={btn} onClick={() => setSeleccion((x) => x === item.id ? null : item.id)}>{seleccion === item.id ? 'Ocultar revisión' : 'Ver preparación y revisar'}</button>{seleccion === item.id && <div className="mt-5 border-t border-slate-200 pt-5"><Revision preparacion={item} refrescar={cargar}/></div>}</div>}
-          {pestaña === 'realizadas' && <div className="mt-4"><button onClick={() => descargar(item.id)} className={btn}>Descargar CV enviado</button>{item.textoPresentacion && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold">Texto de presentación enviado</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{item.textoPresentacion}</p></details>}</div>}
+          {pestaña === 'realizadas' && <div className="mt-4"><button onClick={() => descargar(item.id)} className={btn}>Descargar CV enviado</button><AccionesSeguimiento item={item} onActualizar={cargar}/><HistorialPostulacion item={item}/>{item.textoPresentacion && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold">Texto de presentación enviado</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{item.textoPresentacion}</p></details>}</div>}
         </article>)}
       </div>}
       <ConfirmacionAccion abierto={!!pendienteQuitar} titulo="Quitar de pendientes" mensaje="¿Querés quitar esta oferta de tus postulaciones pendientes? Todavía no se envió ninguna postulación." confirmar="Quitar oferta" peligro ocupado={!!quitando} onConfirmar={() => confirmarQuitar(pendienteQuitar)} onCancelar={() => setPendienteQuitar(null)}/>
