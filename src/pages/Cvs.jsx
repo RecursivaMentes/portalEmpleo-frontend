@@ -58,7 +58,7 @@ export default function Cvs() {
   };
 
   useEffect(() => {
-    cargarCvs();
+    Promise.resolve().then(() => cargarCvs());
   }, []);
 
   useEffect(() => {
@@ -215,47 +215,44 @@ export default function Cvs() {
 
   const handleDescargarOriginal = async (cv) => {
     try {
-      await descargarArchivoCv(
-        cv.id,
-        `${cv.titulo}-original.pdf`
-      );
+      await descargarArchivoCv(cv.id, cv.titulo);
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo descargar el archivo original."
-      );
+      mostrarNotificacion(err.response?.data?.message || err.response?.data?.mensaje ||
+        err.message || "No se pudo descargar el archivo original.");
     }
   };
 
   const handleSubirCv = async (e) => {
     e.preventDefault();
-
+    if (subiendo) return;
     if (!archivoCv || !tituloArchivo.trim()) {
-      alert("Completá el título y seleccioná un archivo.");
+      mostrarNotificacion("CompletÃ¡ el tÃ­tulo y seleccionÃ¡ un archivo.");
       return;
     }
 
-    if (
-      archivoCv.type !== "application/pdf" &&
-      !archivoCv.name.toLowerCase().endsWith(".pdf")
-    ) {
-      alert("Seleccioná un archivo PDF.");
+    const extension = archivoCv.name.toLowerCase().split(".").pop();
+    if (!["pdf", "docx"].includes(extension)) {
+      mostrarNotificacion("Solo podÃ©s subir archivos PDF o Word (.docx).");
+      return;
+    }
+    if (archivoCv.size === 0) {
+      mostrarNotificacion("El archivo estÃ¡ vacÃ­o. SeleccionÃ¡ otro.");
+      return;
+    }
+    if (archivoCv.size > 5 * 1024 * 1024) {
+      mostrarNotificacion("El archivo no puede superar los 5 MB.");
       return;
     }
 
     try {
       setSubiendo(true);
-
       await subirCv(archivoCv, tituloArchivo.trim(), false);
       await cargarCvs();
-
       cerrarFormulario();
-      setMensaje("El archivo se subió correctamente.");
+      setMensaje("El archivo se subiÃ³ correctamente.");
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo subir el CV."
-      );
+      mostrarNotificacion(err.response?.data?.message || err.response?.data?.mensaje ||
+        err.message || "No se pudo subir el CV.");
     } finally {
       setSubiendo(false);
     }
@@ -693,13 +690,13 @@ export default function Cvs() {
                 htmlFor="archivoCv"
                 className="block text-sm font-medium mb-2"
               >
-                Archivo PDF
+                Archivo PDF o Word (.docx), mÃ¡ximo 5 MB
               </label>
 
               <input
                 id="archivoCv"
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 required
                 onChange={(e) =>
                   setArchivoCv(e.target.files?.[0] || null)

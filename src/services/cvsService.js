@@ -102,23 +102,41 @@ export const generarCvIA = async (datos) => {
   return respuesta.data;
 };
 
-export const descargarArchivoCv = async (id, nombre = "cv-original.pdf") => {
-    const respuesta = await axios.get(`/api/cvs/${id}/archivo`, {
-      headers: obtenerHeaders(),
-      responseType: "blob",
-    });
-  
-    const url = URL.createObjectURL(respuesta.data);
+export const descargarArchivoCv = async (id, titulo = "cv-original") => {
+  const respuesta = await axios.get(`${API_CVS}/${id}/archivo`, {
+    headers: obtenerHeaders(),
+    responseType: "blob",
+  });
+
+  const tipo = String(respuesta.headers?.["content-type"] || respuesta.data?.type || "").toLowerCase();
+  const disposicion = String(respuesta.headers?.["content-disposition"] || "");
+  let nombreServidor = "";
+  const codificado = disposicion.match(/filename\*\s*=\s*(?:UTF-8'')?([^;]+)/i);
+  if (codificado) {
+    try { nombreServidor = decodeURIComponent(codificado[1].trim().replace(/^"|"$/g, "")); }
+    catch { nombreServidor = ""; }
+  }
+  if (!nombreServidor) {
+    nombreServidor = disposicion.match(/filename\s*=\s*"([^"]+)"/i)?.[1] ||
+      disposicion.match(/filename\s*=\s*([^;]+)/i)?.[1]?.trim() || "";
+  }
+  const extension = tipo.includes("wordprocessingml") ? ".docx" :
+    tipo.includes("pdf") ? ".pdf" : "";
+  const nombreBase = String(titulo || "cv-original").replace(/[\\/:*?"<>|\p{Cc}]/gu, "_");
+  const nombreSeguro = nombreServidor.split(/[\\/]/).pop().replace(/[\p{Cc}]/gu, "").trim();
+  const nombre = nombreSeguro || `${nombreBase}-original${extension || ".bin"}`;
+
+  const url = URL.createObjectURL(respuesta.data);
+  try {
     const enlace = document.createElement("a");
-  
     enlace.href = url;
     enlace.download = nombre;
-  
     document.body.appendChild(enlace);
     enlace.click();
     enlace.remove();
-  
-    URL.revokeObjectURL(url);
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 };
 
 export const obtenerVistaPreviaCv = async (id) => {

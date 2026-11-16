@@ -18,13 +18,15 @@ const Chatbot=()=> {
 
     // para cargar los mensajes cuando el usuario cambie de chat
     useEffect(() => {
+        let activo = true;
         if (chatActivoId) {
             obtenerMensajes(chatActivoId)
-                .then(data => setMensajes(data))
-                .catch(err => console.error(err));
+                .then(data => { if (activo) setMensajes(data); })
+                .catch(err => { if (activo) console.error(err); });
         } else {
-            setMensajes([]);
+            Promise.resolve().then(() => { if (activo) setMensajes([]); });
         }
+        return () => { activo = false; };
     }, [chatActivoId]);
 
     // Auto-scroll al último mensaje enviado o recibido
@@ -38,7 +40,7 @@ const Chatbot=()=> {
             const nuevoChat = await crearChat(); // Tu endpoint recibe 'Tipo'
             setChats([nuevoChat, ...chats]); // Lo agrega arriba en la lista
             setChatActivoId(nuevoChat.id);   // Lo selecciona automáticamente
-        } catch (error) {
+        } catch {
             alert("No se pudo crear el chat");
         }
     };

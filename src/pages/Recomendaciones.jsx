@@ -48,9 +48,11 @@ export default function Recomendaciones({ usuarioId }) {
 
   useEffect(() => {
     if (!usuarioId) {
-      setRecomendaciones([]);
-      setError("No se pudo identificar al usuario autenticado.");
-      setCargando(false);
+      Promise.resolve().then(() => {
+        setRecomendaciones([]);
+        setError("No se pudo identificar al usuario autenticado.");
+        setCargando(false);
+      });
       return;
     }
 
@@ -75,8 +77,7 @@ export default function Recomendaciones({ usuarioId }) {
         if (activo) setCargando(false);
       }
     }
-
-    cargar();
+    Promise.resolve().then(() => { if (activo) cargar(); });
 
     return () => {
       activo = false;

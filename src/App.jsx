@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
-import { Briefcase, Sparkles, Bot, LogOut, FileText } from "lucide-react";
+import { Briefcase, Sparkles, Bot, FileText } from "lucide-react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";

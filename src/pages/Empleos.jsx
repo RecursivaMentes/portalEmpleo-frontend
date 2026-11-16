@@ -58,7 +58,8 @@ export default function Empleos() {
   }
 
   useEffect(() => {
-    buscar(filtrosIniciales);
+    // La consulta comienza tras el montaje, fuera del cuerpo sincrono del efecto.
+    Promise.resolve().then(() => buscar(filtrosIniciales));
   }, []);
 
   return (
