@@ -3,46 +3,37 @@ import axios from "axios";
 const API_CVS = "/api/cvs";
 const API_GENERACION = "/api/generacion-cv";
 
-const obtenerHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-});
+//config para las cookies
+const config = {
+    withCredentials: true
+};
 
 export const obtenerCvs = async () => {
-  const respuesta = await axios.get(API_CVS, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.get(API_CVS,config);
 
   return respuesta.data;
 };
 
 export const obtenerCv = async (id) => {
-  const respuesta = await axios.get(`${API_CVS}/${id}`, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.get(`${API_CVS}/${id}`,config);
 
   return respuesta.data;
 };
 
 export const crearCv = async (datos) => {
-  const respuesta = await axios.post(API_CVS, datos, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.post(API_CVS, datos,config);
 
   return respuesta.data;
 };
 
 export const actualizarCv = async (id, datos) => {
-  const respuesta = await axios.put(`${API_CVS}/${id}`, datos, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.put(`${API_CVS}/${id}`, datos,config);
 
   return respuesta.data;
 };
 
 export const eliminarCv = async (id) => {
-  await axios.delete(`${API_CVS}/${id}`, {
-    headers: obtenerHeaders(),
-  });
+  await axios.delete(`${API_CVS}/${id}`, config);
 };
 
 export const subirCv = async (archivo, titulo, esPrincipal = false) => {
@@ -52,9 +43,7 @@ export const subirCv = async (archivo, titulo, esPrincipal = false) => {
   formulario.append("titulo", titulo);
   formulario.append("esPrincipal", String(esPrincipal));
 
-  const respuesta = await axios.post(`${API_CVS}/archivo`, formulario, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.post(`${API_CVS}/archivo`, formulario,config);
 
   return respuesta.data;
 };
@@ -63,16 +52,14 @@ export const actualizarArchivoCv = async (id, archivo) => {
   const formulario = new FormData();
   formulario.append("archivo", archivo);
 
-  const respuesta = await axios.put(`${API_CVS}/${id}/archivo`, formulario, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.put(`${API_CVS}/${id}/archivo`, formulario, config);
 
   return respuesta.data;
 };
 
 export const descargarCv = async (id, nombre = "curriculum.pdf") => {
   const respuesta = await axios.get(`${API_CVS}/${id}/descargar`, {
-    headers: obtenerHeaders(),
+    ...config,
     responseType: "blob",
   });
 
@@ -89,16 +76,14 @@ export const descargarCv = async (id, nombre = "curriculum.pdf") => {
 };
 
 export const generarCvIA = async (datos) => {
-  const respuesta = await axios.post(API_GENERACION, datos, {
-    headers: obtenerHeaders(),
-  });
+  const respuesta = await axios.post(API_GENERACION, datos,config);
 
   return respuesta.data;
 };
 
 export const descargarArchivoCv = async (id, nombre = "cv-original.pdf") => {
     const respuesta = await axios.get(`/api/cvs/${id}/archivo`, {
-      headers: obtenerHeaders(),
+      ...config,
       responseType: "blob",
     });
   
@@ -117,7 +102,7 @@ export const descargarArchivoCv = async (id, nombre = "cv-original.pdf") => {
 
 export const obtenerVistaPreviaCv = async (id) => {
   const respuesta = await axios.get(`/api/cvs/${id}/descargar`, {
-    headers: obtenerHeaders(),
+    ...config,
     responseType: "blob",
   });
 

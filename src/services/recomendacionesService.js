@@ -2,14 +2,8 @@ const API_URL = import.meta.env.VITE_RECOMENDACIONES_API_URL;
 const USUARIOS_URL = import.meta.env.VITE_USUARIOS_API_URL;
 
 export async function obtenerRecomendaciones(usuarioId) {
-  const token = localStorage.getItem("accessToken");
-
-  if (!token) {
-    throw new Error("Iniciá sesión para consultar tus recomendaciones");
-  }
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
+  const fetchOptions = {
+    credentials: "include",
   };
 
   let id = usuarioId;
@@ -17,8 +11,13 @@ export async function obtenerRecomendaciones(usuarioId) {
   if (!id) {
     const perfilResponse = await fetch(
       `${USUARIOS_URL}/api/auth/profile`,
-      { headers }
+      fetchOptions
     );
+
+    // Si no hay cookie o expiró, .NET responde 401
+    if (perfilResponse.status === 401) {
+      throw new Error("Iniciá sesión para consultar tus recomendaciones");
+    }
 
     if (!perfilResponse.ok) {
       throw new Error("No se pudo obtener el usuario autenticado");
@@ -34,8 +33,13 @@ export async function obtenerRecomendaciones(usuarioId) {
 
   const response = await fetch(
     `${API_URL}/api/recomendaciones/usuario/${encodeURIComponent(id)}`,
-    { headers }
+    fetchOptions
   );
+
+  //otra vez, pero ahora si es que se paso id
+  if (response.status === 401) {
+    throw new Error("Iniciá sesión para consultar tus recomendaciones");
+  }
 
   if (!response.ok) {
     throw new Error("No se pudieron obtener las recomendaciones laborales");

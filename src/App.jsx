@@ -1,24 +1,51 @@
 import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import { Briefcase, Sparkles, Bot, LogOut, UserCircle, User, Lock, BriefcaseBusiness, FileText } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Empleos from "./pages/Empleos";
 import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot";
 import FormDatosPersonales from "./components/FormDatosPersonales";
 import Cvs from "./pages/Cvs";
+import { cerrarSesion, obtenerDatosPersonales } from "./services/usuariosService";
 
 function App() {
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
+  const [autenticado,setAutenticado]=useState(null)
   const navigate = useNavigate();
 
-  // Función para validar si el usuario está autenticado
-  const estaAutenticado = () => !!localStorage.getItem("accessToken");
+  // Al cargar la app, verificamos contra el backend si la cookie es válida
+  useEffect(() => {
+    const verificarSesion = async () => {
+      try {
+        await obtenerDatosPersonales();
+        setAutenticado(true);
+      } catch {
+        setAutenticado(false);
+      }
+    };
+    verificarSesion();
+  }, []);
 
-  const cerrarSesion = () => {
-    localStorage.removeItem("accessToken");
-    navigate("/iniciarSesion", { replace: true });
+  const cerrarLaSesion = async() => {
+    try {
+      await cerrarSesion();
+      setAutenticado(false);
+      setMostrarMenuUsuario(false);
+      navigate("/iniciarSesion", { replace: true });
+    } catch (error) {
+      console.log("Error al cerrar sesión" + error.message);
+    }
   };
+
+  // Mientras consulta el perfil, evitamos que redirija a iniciar sesion
+  if (autenticado === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-500 text-sm">
+        Cargando sesión...
+      </div>
+    );
+  }
 
   const enlaceBase = "inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer";
 
@@ -33,7 +60,7 @@ function App() {
       <Route
         path="/*"
         element={
-          estaAutenticado() ? (
+          autenticado? (
             <>
               <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
                 <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
@@ -108,7 +135,7 @@ function App() {
                         <div className="border-t border-slate-100 my-1"></div>
 
                         <button
-                          onClick={cerrarSesion}
+                          onClick={cerrarLaSesion}
                           className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 cursor-pointer text-left font-medium"
                         >
                           <LogOut size={16} /> Cerrar Sesión
