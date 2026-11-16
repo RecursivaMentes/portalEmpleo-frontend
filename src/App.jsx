@@ -5,6 +5,7 @@ import Recomendaciones from "./pages/Recomendaciones";
 import IniciarSesion from "./pages/IniciarSesion";
 import Chatbot from "./pages/Chatbot"
 import Cvs from "./pages/Cvs";
+import { obtenerUsuarioIdActual } from "./services/usuariosService";
 
 function App() {
   const navigate = useNavigate();

@@ -32,16 +32,21 @@ export const crearCv = async (datos) => {
 };
 
 export const actualizarCv = async (id, datos) => {
+  if (!Number.isSafeInteger(datos?.version) || datos.version < 1) {
+    throw new Error("No se pudo identificar la version del CV. Recarga el CV antes de guardar.");
+  }
   const respuesta = await axios.put(`${API_CVS}/${id}`, datos, {
     headers: obtenerHeaders(),
   });
-
   return respuesta.data;
 };
 
-export const eliminarCv = async (id) => {
+export const eliminarCv = async (id, version) => {
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new Error("No se pudo identificar la version del CV. Actualiza el listado antes de eliminar.");
+  }
   await axios.delete(`${API_CVS}/${id}`, {
-    headers: obtenerHeaders(),
+    headers: { ...obtenerHeaders(), "If-Match": String(version) },
   });
 };
 
@@ -59,14 +64,15 @@ export const subirCv = async (archivo, titulo, esPrincipal = false) => {
   return respuesta.data;
 };
 
-export const actualizarArchivoCv = async (id, archivo) => {
+export const actualizarArchivoCv = async (id, archivo, version) => {
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new Error("No se pudo identificar la version del CV. Actualiza el CV antes de reemplazar el archivo.");
+  }
   const formulario = new FormData();
   formulario.append("archivo", archivo);
-
   const respuesta = await axios.put(`${API_CVS}/${id}/archivo`, formulario, {
-    headers: obtenerHeaders(),
+    headers: { ...obtenerHeaders(), "If-Match": String(version) },
   });
-
   return respuesta.data;
 };
 

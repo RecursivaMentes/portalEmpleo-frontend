@@ -22,6 +22,7 @@ export default function Cvs() {
   const [vista, setVista] = useState("listado");
   const [guardando, setGuardando] = useState(false);
   const [cvEditando, setCvEditando] = useState(null);
+  const [cvEditandoVersion, setCvEditandoVersion] = useState(null);
   const [nuevoCv, setNuevoCv] = useState({ ...formularioVacio });
 
   const [archivoCv, setArchivoCv] = useState(null);
@@ -71,6 +72,7 @@ export default function Cvs() {
   const cerrarFormulario = () => {
     setVista("listado");
     setCvEditando(null);
+    setCvEditandoVersion(null);
     setNuevoCv({ ...formularioVacio });
     setArchivoCv(null);
     setTituloArchivo("");
@@ -123,6 +125,7 @@ export default function Cvs() {
       });
 
       setCvEditando(cv.id);
+      setCvEditandoVersion(completo.version);
       setMensaje("");
       setVista("manual");
 
@@ -147,7 +150,7 @@ export default function Cvs() {
       setGuardando(true);
 
       if (cvEditando) {
-        await actualizarCv(cvEditando, nuevoCv);
+        await actualizarCv(cvEditando, { ...nuevoCv, version: cvEditandoVersion });
       } else {
         await crearCv(nuevoCv);
       }
@@ -161,10 +164,11 @@ export default function Cvs() {
           : "El currículum se creó correctamente."
       );
     } catch (err) {
-      mostrarNotificacion(
-        err.response?.data?.message ||
-          "No se pudo guardar el CV."
-      );
+      if (err.response?.status === 409) {
+        mostrarNotificacion("Este CV se modifico desde que lo abriste. Tus cambios siguen en el formulario; revisa la version actual antes de intentar guardar otra vez.");
+      } else {
+        mostrarNotificacion(err.response?.data?.message || err.message || "No se pudo guardar el CV.");
+      }
     } finally {
       setGuardando(false);
     }
@@ -180,16 +184,19 @@ export default function Cvs() {
     try {
       setEliminando(true);
 
-      await eliminarCv(cvParaEliminar.id);
+      await eliminarCv(cvParaEliminar.id, cvParaEliminar.version);
       await cargarCvs();
 
       setCvParaEliminar(null);
       setMensaje("El currículum se eliminó correctamente.");
     } catch (err) {
-      mostrarNotificacion(
-        err.response?.data?.message ||
-          "No se pudo eliminar el CV."
-      );
+      if (err.response?.status === 409) {
+        setCvParaEliminar(null);
+        await cargarCvs();
+        mostrarNotificacion("Este CV cambio desde que se cargo el listado. Se actualizaron sus datos; revisalos antes de volver a eliminarlo.");
+      } else {
+        mostrarNotificacion(err.response?.data?.message || err.message || "No se pudo eliminar el CV.");
+      }
     } finally {
       setEliminando(false);
     }
