@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
-import { Briefcase, Sparkles, Bot, FileText, User, UserCircle, LogOut, LogIn } from 'lucide-react';
+import { Briefcase, Sparkles, Bot, FileText, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
 import Empleos from './pages/Empleos';
 import Recomendaciones from './pages/Recomendaciones';
 import IniciarSesion from './pages/IniciarSesion';
@@ -8,6 +8,7 @@ import Registrarse from './pages/Registrarse';
 import Chatbot from './pages/Chatbot';
 import Cvs from './pages/Cvs';
 import FormDatosPersonales from './components/FormDatosPersonales';
+import PerfilLaboral from './pages/PerfilLaboral';
 import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual } from './services/usuariosService';
@@ -28,6 +29,7 @@ function MenuUsuario({ salir }) {
   }, [abierto]);
   const opciones = [
     ['/perfil/datos', 'Datos personales', User],
+    ['/perfil/laboral', 'Perfil laboral', BriefcaseBusiness],
     ['/cvs', 'Mis CV', FileText],
   ];
   return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)}>
@@ -84,6 +86,7 @@ export default function App() {
           <Route path="chatbot" element={acceso(<Chatbot/>)}/>
           <Route path="cvs" element={acceso(<Cvs/>)}/>
           <Route path="perfil/datos" element={acceso(<FormDatosPersonales actualizar/>)}/>
+          <Route path="perfil/laboral" element={acceso(<PerfilLaboral/>)}/>
           <Route path="" element={<Navigate to="/empleos" replace/>}/>
           <Route path="*" element={<Navigate to="/empleos" replace/>}/>
         </Routes></main>
