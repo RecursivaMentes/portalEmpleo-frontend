@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye } from "lucide-react";
 import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
+import { obtenerMensajeErrorCv, obtenerMensajeErrorDescargaCv } from "../services/cvErrors";
 
 const formularioVacio = {
   titulo: "",
@@ -22,6 +23,7 @@ export default function Cvs() {
   const [vista, setVista] = useState("listado");
   const [guardando, setGuardando] = useState(false);
   const [cvEditando, setCvEditando] = useState(null);
+  const [cvEditandoVersion, setCvEditandoVersion] = useState(null);
   const [nuevoCv, setNuevoCv] = useState({ ...formularioVacio });
 
   const [archivoCv, setArchivoCv] = useState(null);
@@ -31,6 +33,7 @@ export default function Cvs() {
   const [datosIA, setDatosIA] = useState({ ...formularioIAVacio });
   const [generando, setGenerando] = useState(false);
   const [errorIA, setErrorIA] = useState("");
+  const [textoRecuperadoIA, setTextoRecuperadoIA] = useState("");
   const [mensaje, setMensaje] = useState("");
 
   const [vistaPrevia, setVistaPrevia] = useState(null);
@@ -48,8 +51,7 @@ export default function Cvs() {
       setCvs(datos);
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          "No se pudieron cargar tus CV."
+        obtenerMensajeErrorCv(err, "No se pudieron cargar tus CV.")
       );
     } finally {
       setCargando(false);
@@ -57,7 +59,7 @@ export default function Cvs() {
   };
 
   useEffect(() => {
-    cargarCvs();
+    Promise.resolve().then(() => cargarCvs());
   }, []);
 
   useEffect(() => {
@@ -71,11 +73,13 @@ export default function Cvs() {
   const cerrarFormulario = () => {
     setVista("listado");
     setCvEditando(null);
+    setCvEditandoVersion(null);
     setNuevoCv({ ...formularioVacio });
     setArchivoCv(null);
     setTituloArchivo("");
     setDatosIA({ ...formularioIAVacio });
     setErrorIA("");
+    setTextoRecuperadoIA("");
   };
 
   const abrirNuevoCv = () => {
@@ -123,15 +127,13 @@ export default function Cvs() {
       });
 
       setCvEditando(cv.id);
+      setCvEditandoVersion(completo.version);
       setMensaje("");
       setVista("manual");
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo cargar el CV."
-      );
+      mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo cargar el CV."));
     }
   };
 
@@ -147,7 +149,7 @@ export default function Cvs() {
       setGuardando(true);
 
       if (cvEditando) {
-        await actualizarCv(cvEditando, nuevoCv);
+        await actualizarCv(cvEditando, { ...nuevoCv, version: cvEditandoVersion });
       } else {
         await crearCv(nuevoCv);
       }
@@ -161,10 +163,11 @@ export default function Cvs() {
           : "El currículum se creó correctamente."
       );
     } catch (err) {
-      mostrarNotificacion(
-        err.response?.data?.message ||
-          "No se pudo guardar el CV."
-      );
+      if (err.response?.status === 409) {
+        mostrarNotificacion("Este CV se modifico desde que lo abriste. Tus cambios siguen en el formulario; revisa la version actual antes de intentar guardar otra vez.");
+      } else {
+        mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo guardar el CV."));
+      }
     } finally {
       setGuardando(false);
     }
@@ -180,16 +183,19 @@ export default function Cvs() {
     try {
       setEliminando(true);
 
-      await eliminarCv(cvParaEliminar.id);
+      await eliminarCv(cvParaEliminar.id, cvParaEliminar.version);
       await cargarCvs();
 
       setCvParaEliminar(null);
       setMensaje("El currículum se eliminó correctamente.");
     } catch (err) {
-      mostrarNotificacion(
-        err.response?.data?.message ||
-          "No se pudo eliminar el CV."
-      );
+      if (err.response?.status === 409) {
+        setCvParaEliminar(null);
+        await cargarCvs();
+        mostrarNotificacion("Este CV cambio desde que se cargo el listado. Se actualizaron sus datos; revisalos antes de volver a eliminarlo.");
+      } else {
+        mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo eliminar el CV."));
+      }
     } finally {
       setEliminando(false);
     }
@@ -199,56 +205,48 @@ export default function Cvs() {
     try {
       await descargarCv(cv.id, `${cv.titulo}.pdf`);
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo descargar el PDF."
-      );
+      mostrarNotificacion(await obtenerMensajeErrorDescargaCv(err, "No se pudo descargar el PDF."));
     }
   };
 
   const handleDescargarOriginal = async (cv) => {
     try {
-      await descargarArchivoCv(
-        cv.id,
-        `${cv.titulo}-original.pdf`
-      );
+      await descargarArchivoCv(cv.id, cv.titulo);
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo descargar el archivo original."
-      );
+      mostrarNotificacion(await obtenerMensajeErrorDescargaCv(err, "No se pudo descargar el archivo original."));
     }
   };
 
   const handleSubirCv = async (e) => {
     e.preventDefault();
-
+    if (subiendo) return;
     if (!archivoCv || !tituloArchivo.trim()) {
-      alert("Completá el título y seleccioná un archivo.");
+      mostrarNotificacion("Completá el título y seleccioná un archivo.");
       return;
     }
 
-    if (
-      archivoCv.type !== "application/pdf" &&
-      !archivoCv.name.toLowerCase().endsWith(".pdf")
-    ) {
-      alert("Seleccioná un archivo PDF.");
+    const extension = archivoCv.name.toLowerCase().split(".").pop();
+    if (!["pdf", "docx"].includes(extension)) {
+      mostrarNotificacion("Solo podés subir archivos PDF o Word (.docx).");
+      return;
+    }
+    if (archivoCv.size === 0) {
+      mostrarNotificacion("El archivo está vacío. Seleccioná otro.");
+      return;
+    }
+    if (archivoCv.size > 5 * 1024 * 1024) {
+      mostrarNotificacion("El archivo no puede superar los 5 MB.");
       return;
     }
 
     try {
       setSubiendo(true);
-
       await subirCv(archivoCv, tituloArchivo.trim(), false);
       await cargarCvs();
-
       cerrarFormulario();
       setMensaje("El archivo se subió correctamente.");
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          "No se pudo subir el CV."
-      );
+      mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo subir el CV."));
     } finally {
       setSubiendo(false);
     }
@@ -257,6 +255,8 @@ export default function Cvs() {
   const handleGenerarIA = async (e) => {
     e.preventDefault();
     setErrorIA("");
+    setTextoRecuperadoIA("");
+    if (generando) return;
 
     if (datosIA.puestoObjetivo.length > 200) {
       setErrorIA(
@@ -279,13 +279,10 @@ export default function Cvs() {
 
       setMensaje("¡Tu CV se generó correctamente con IA!");
     } catch (err) {
-      const datosError = err.response?.data;
-
-      setErrorIA(
-        datosError?.message ||
-          datosError?.mensaje ||
-          "No se pudo generar el CV. Intentá nuevamente."
-      );
+      const texto = err.response?.status === 422 && typeof err.response?.data?.textoGenerado === "string"
+        ? err.response.data.textoGenerado : "";
+      setTextoRecuperadoIA(texto);
+      setErrorIA(obtenerMensajeErrorCv(err, "No se pudo generar el CV."));
     } finally {
       setGenerando(false);
     }
@@ -312,8 +309,7 @@ export default function Cvs() {
       });
     } catch (err) {
       mostrarNotificacion(
-        err.response?.data?.message ||
-          "No se pudo cargar la vista previa."
+        await obtenerMensajeErrorDescargaCv(err, "No se pudo cargar la vista previa.")
       );
     } finally {
       setCargandoVistaPrevia(false);
@@ -686,13 +682,13 @@ export default function Cvs() {
                 htmlFor="archivoCv"
                 className="block text-sm font-medium mb-2"
               >
-                Archivo PDF
+                Archivo PDF o Word (.docx), máximo 5 MB
               </label>
 
               <input
                 id="archivoCv"
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 required
                 onChange={(e) =>
                   setArchivoCv(e.target.files?.[0] || null)
@@ -834,6 +830,23 @@ export default function Cvs() {
               >
                 {errorIA}
               </div>
+            )}
+
+            {textoRecuperadoIA && (
+              <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3" aria-label="Texto de CV recuperado">
+                <p className="text-sm font-semibold text-amber-900">La IA generó el texto, pero no pudo guardar el CV.</p>
+                <p className="text-sm text-amber-800">Copiá el contenido antes de salir de esta pantalla. No se guardó como currículum.</p>
+                <textarea aria-label="Texto generado recuperado" readOnly value={textoRecuperadoIA}
+                  rows={9} className="w-full rounded-lg border border-amber-200 bg-white p-3 text-sm text-slate-800" />
+                <button type="button" onClick={() => {
+                    if (!navigator.clipboard?.writeText) {
+                      mostrarNotificacion("La copia automática no está disponible. Seleccioná el texto manualmente.");
+                      return;
+                    }
+                    navigator.clipboard.writeText(textoRecuperadoIA).catch(() => mostrarNotificacion("No se pudo copiar. Seleccioná el texto manualmente."));
+                  }}
+                  className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800">Copiar texto</button>
+              </section>
             )}
 
             <div className="flex flex-wrap gap-3">

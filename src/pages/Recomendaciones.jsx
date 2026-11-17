@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { obtenerRecomendaciones } from "../services/recomendacionesService";
+import DetalleOferta from '../components/DetalleOferta';
+import AccionesPostulacion from "../components/AccionesPostulacion";
 
 const porcentajeDe = (empleo) =>
   Number(
@@ -9,6 +11,7 @@ const porcentajeDe = (empleo) =>
   );
 
 const coincidentesDe = (empleo) =>
+  empleo.coincidencias ??
   empleo.habilidadesCoincidentes ??
   empleo.requisitosCoincidentes ??
   [];
@@ -38,7 +41,7 @@ function Etiqueta({ children, tipo = "coincidente" }) {
   );
 }
 
-export default function Recomendaciones({ usuarioId }) {
+export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -46,6 +49,15 @@ export default function Recomendaciones({ usuarioId }) {
   const [ofertaSeleccionada, setOfertaSeleccionada] = useState(null);
 
   useEffect(() => {
+    if (!usuarioId) {
+      Promise.resolve().then(() => {
+        setRecomendaciones([]);
+        setError("No se pudo identificar al usuario autenticado.");
+        setCargando(false);
+      });
+      return;
+    }
+
     let activo = true;
 
     async function cargar() {
@@ -67,8 +79,7 @@ export default function Recomendaciones({ usuarioId }) {
         if (activo) setCargando(false);
       }
     }
-
-    cargar();
+    Promise.resolve().then(() => { if (activo) cargar(); });
 
     return () => {
       activo = false;
@@ -312,6 +323,7 @@ export default function Recomendaciones({ usuarioId }) {
                         >
                           Ver oferta →
                         </button>
+                        <AccionesPostulacion empleo={empleo} onSolicitarLogin={onSolicitarLogin}/>
                       </div>
                     </div>
                   </article>
@@ -322,98 +334,7 @@ export default function Recomendaciones({ usuarioId }) {
         </section>
       </div>
 
-      {ofertaSeleccionada && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4"
-          onClick={() => setOfertaSeleccionada(null)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-oferta"
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-7 max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start gap-4">
-              <h2
-                id="titulo-oferta"
-                className="text-2xl font-bold text-slate-900"
-              >
-                {ofertaSeleccionada.titulo}
-              </h2>
-
-              <button
-                type="button"
-                onClick={() => setOfertaSeleccionada(null)}
-                aria-label="Cerrar"
-                className="text-2xl text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="mt-5">
-              <p className="text-xs uppercase tracking-wide font-semibold text-slate-400">
-                Compatibilidad con tu perfil
-              </p>
-
-              <p className="text-3xl font-extrabold text-blue-600 mt-2">
-                {formatoPorcentaje(
-                  porcentajeDe(ofertaSeleccionada)
-                )}
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-5">
-              <div>
-                <h3 className="font-semibold text-slate-900 mb-2">
-                  Habilidades coincidentes
-                </h3>
-
-                <div className="flex flex-wrap gap-2">
-                  {coincidentesDe(ofertaSeleccionada).length > 0 ? (
-                    coincidentesDe(ofertaSeleccionada).map((h, i) => (
-                      <Etiqueta key={i}>✓ {h}</Etiqueta>
-                    ))
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      Sin coincidencias
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-slate-900 mb-2">
-                  Requisitos faltantes
-                </h3>
-
-                <div className="flex flex-wrap gap-2">
-                  {faltantesDe(ofertaSeleccionada).length > 0 ? (
-                    faltantesDe(ofertaSeleccionada).map((r, i) => (
-                      <Etiqueta key={i} tipo="faltante">
-                        {r}
-                      </Etiqueta>
-                    ))
-                  ) : (
-                    <p className="text-sm text-emerald-600">
-                      Cumplís todos los requisitos
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setOfertaSeleccionada(null)}
-              className="mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold cursor-pointer"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {ofertaSeleccionada && <DetalleOferta empleo={ofertaSeleccionada} onCerrar={() => setOfertaSeleccionada(null)} onSolicitarLogin={onSolicitarLogin}/>} 
     </main>
   );
 }

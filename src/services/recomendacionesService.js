@@ -14,7 +14,6 @@ export async function obtenerRecomendaciones(usuarioId) {
       fetchOptions
     );
 
-    // Si no hay cookie o expiró, .NET responde 401
     if (perfilResponse.status === 401) {
       throw new Error("Iniciá sesión para consultar tus recomendaciones");
     }
@@ -36,13 +35,12 @@ export async function obtenerRecomendaciones(usuarioId) {
     fetchOptions
   );
 
-  //otra vez, pero ahora si es que se paso id
   if (response.status === 401) {
     throw new Error("Iniciá sesión para consultar tus recomendaciones");
   }
 
   if (!response.ok) {
-    throw new Error("No se pudieron obtener las recomendaciones laborales");
+    throw new Error(`Error al obtener recomendaciones: HTTP ${response.status}`);
   }
 
   const datos = await response.json();

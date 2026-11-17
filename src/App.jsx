@@ -1,171 +1,135 @@
-import { Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
-import { Briefcase, Sparkles, Bot, LogOut, UserCircle, User, Lock, BriefcaseBusiness, FileText } from "lucide-react";
-import { useEffect, useState } from "react";
-import Empleos from "./pages/Empleos";
-import Recomendaciones from "./pages/Recomendaciones";
-import IniciarSesion from "./pages/IniciarSesion";
-import Chatbot from "./pages/Chatbot";
-import FormDatosPersonales from "./components/FormDatosPersonales";
-import Cvs from "./pages/Cvs";
-import { cerrarSesion, obtenerDatosPersonales } from "./services/usuariosService";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { Briefcase, Sparkles, Bot, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
+import Empleos from './pages/Empleos';
+import Recomendaciones from './pages/Recomendaciones';
+import IniciarSesion from './pages/IniciarSesion';
+import Registrarse from './pages/Registrarse';
+import Chatbot from './pages/Chatbot';
+import Cvs from './pages/Cvs';
+import FormDatosPersonales from './components/FormDatosPersonales';
+import Postulaciones from './pages/Postulaciones';
+import PerfilLaboral from './pages/PerfilLaboral';
+import CambiarContrasena from './pages/CambiarContrasena';
+import RecuperarContrasena from './pages/RecuperarContrasena';
+import ModalAutenticacion from './components/Autenticacion';
+import AvisosGlobales from './components/Avisos';
+import { cerrarSesionUsuario, obtenerUsuarioIdActual,obtenerDatosPersonales } from './services/usuariosService';
 
-function App() {
-  const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
-  const [autenticado,setAutenticado]=useState(null)
-  const navigate = useNavigate();
+const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
+const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200'}`;
 
-  // Al cargar la app, verificamos contra el backend si la cookie es válida
+function MenuUsuario({ salir }) {
+  const [abierto, setAbierto] = useState(false);
+  const menuRef = useRef(null);
   useEffect(() => {
-    const verificarSesion = async () => {
-      try {
-        await obtenerDatosPersonales();
-        setAutenticado(true);
-      } catch {
-        setAutenticado(false);
-      }
-    };
-    verificarSesion();
-  }, []);
-
-  const cerrarLaSesion = async() => {
-    try {
-      await cerrarSesion();
-      setAutenticado(false);
-      setMostrarMenuUsuario(false);
-      navigate("/iniciarSesion", { replace: true });
-    } catch (error) {
-      console.log("Error al cerrar sesión" + error.message);
-    }
-  };
-
-  // Mientras consulta el perfil, evitamos que redirija a iniciar sesion
-  if (autenticado === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500 text-sm">
-        Cargando sesión...
-      </div>
-    );
-  }
-
-  const enlaceBase = "inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer";
-
-  // Para aplicar clases dinámicamente según la URL activa
-  const obtenerClaseEnlace = ({ isActive }) =>
-    `${enlaceBase} ${isActive ? "border-blue-600 text-blue-700" : "border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200"}`;
-
-  return (
-    <Routes>
-      <Route path="/iniciarSesion" element={<IniciarSesion />} />
-      <Route path="/registrarse" element={<FormDatosPersonales />} />
-      <Route
-        path="/*"
-        element={
-          autenticado? (
-            <>
-              <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-                <nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
-                  <NavLink to="/empleos" className={obtenerClaseEnlace}>
-                    <Briefcase size={18} className="text-slate-400 group-hover:text-blue-600" /> Buscar empleos
-                  </NavLink>
-
-                  <NavLink to="/recomendaciones" className={obtenerClaseEnlace}>
-                    <Sparkles size={18} className="text-slate-400" /> Mis recomendaciones
-                  </NavLink>
-
-                  <NavLink to="/chatbot" className={obtenerClaseEnlace}>
-                    <Bot size={18} className="text-blue-500 animate-pulse" /> Chatbot
-                  </NavLink>
-
-                  <div className="relative flex items-center ml-auto">
-                    <button
-                      type="button"
-                      onClick={() => setMostrarMenuUsuario(!mostrarMenuUsuario)}
-                      className="p-1 text-slate-500 hover:text-blue-600 rounded-full transition-colors cursor-pointer"
-                    >
-                      <UserCircle size={32} className="text-slate-600 hover:text-blue-600 transition-colors" />
-                    </button>
-
-                    {/* Menú de usuario */}
-                    {mostrarMenuUsuario && (
-                      <div className="absolute right-0 top-12 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                        <div className="px-4 py-2 border-b border-slate-100">
-                          <p className="text-xs text-slate-400 font-medium">Mi Cuenta</p>
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            setMostrarMenuUsuario(false);
-                            navigate("/perfil/datos");
-                          }}
-                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
-                        >
-                          <User size={16} className="text-slate-400" /> Datos personales
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setMostrarMenuUsuario(false);
-                            navigate("/perfil/seguridad");
-                          }}
-                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
-                        >
-                          <Lock size={16} className="text-slate-400" /> Cambiar contraseña
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setMostrarMenuUsuario(false);
-                            navigate("/perfil/laboral");
-                          }}
-                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
-                        >
-                          <BriefcaseBusiness size={16} className="text-slate-400" /> Perfil laboral
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setMostrarMenuUsuario(false);
-                            navigate("/cvs");
-                          }}
-                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer text-left"
-                        >
-                          <FileText size={16} className="text-slate-400" /> Mi CV / Currículum
-                        </button>
-
-                        <div className="border-t border-slate-100 my-1"></div>
-
-                        <button
-                          onClick={cerrarLaSesion}
-                          className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 cursor-pointer text-left font-medium"
-                        >
-                          <LogOut size={16} /> Cerrar Sesión
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </nav>
-              </header>
-
-              <main>
-                <Routes>
-                  <Route path="empleos" element={<Empleos />} />
-                  <Route path="recomendaciones" element={<Recomendaciones />} />
-                  <Route path="chatbot" element={<Chatbot />} />
-                  <Route path="perfil/datos" element={<FormDatosPersonales actualizar={true} />} />
-                  <Route path="cvs" element={<Cvs />} />
-                  {/* <Route path="perfil/seguridad" element={<CambiarContrasena />} />
-                  <Route path="perfil/laboral" element={<PerfilLaboral />} /> */}
-                  <Route path="" element={<Navigate to="/empleos" replace />} />
-                </Routes>
-              </main>
-            </>
-          ) : (
-            <Navigate to="/iniciarSesion" replace />
-          )
-        }
-      />
-    </Routes>
-  );
+    if (!abierto) return;
+    function fuera(e) { if (!menuRef.current?.contains(e.target)) setAbierto(false); }
+    function escapar(e) { if (e.key === 'Escape') setAbierto(false); }
+    document.addEventListener('pointerdown', fuera);
+    document.addEventListener('keydown', escapar);
+    return () => { document.removeEventListener('pointerdown', fuera); document.removeEventListener('keydown', escapar); };
+  }, [abierto]);
+  const opciones = [
+    ['/perfil/datos', 'Datos personales', User],
+    ['/perfil/laboral', 'Perfil laboral', BriefcaseBusiness],
+    ['/perfil/seguridad', 'Cambiar contraseña', User],
+    ['/cvs', 'Mis CV', FileText],
+  ];
+  return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} >
+    <button type="button" aria-label="Menú de usuario" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-600 hover:text-blue-700`}><UserCircle size={23}/><span className="hidden sm:inline">Mi cuenta</span></button>
+    {abierto && <div role="menu" className="absolute right-0 top-full z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
+      {opciones.map(([ruta, titulo, Icono]) => <NavLink key={ruta} role="menuitem" to={ruta} onClick={() => setAbierto(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"><Icono size={16}/>{titulo}</NavLink>)}
+      <div className="my-1 border-t border-slate-100"/><button role="menuitem" type="button" onClick={() => { setAbierto(false); salir(); }} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer"><LogOut size={16}/>Cerrar sesión</button>
+    </div>}
+  </div>;
 }
 
-export default App;
+function MenuPostulaciones({ proteger }) {
+  const [abierto, setAbierto] = useState(false);
+  const menuRef = useRef(null);
+  useEffect(() => {
+    if (!abierto) return;
+    function fuera(e) { if (!menuRef.current?.contains(e.target)) setAbierto(false); }
+    function escapar(e) { if (e.key === 'Escape') setAbierto(false); }
+    document.addEventListener('pointerdown', fuera);
+    document.addEventListener('keydown', escapar);
+    return () => { document.removeEventListener('pointerdown', fuera); document.removeEventListener('keydown', escapar); };
+  }, [abierto]);
+  const items = [['/postulaciones/pendientes', 'Pendientes'], ['/postulaciones/aprobaciones', 'Requieren tu aprobación'], ['/postulaciones/realizadas', 'Realizadas']];
+  return <div ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} className="relative" >
+    <button type="button" aria-label="Postulaciones" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200`}><ClipboardList size={18}/>Postulaciones<ChevronDown size={14}/></button>
+    {abierto && <div role="menu" className="absolute left-0 top-full z-50 w-60 rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
+      {items.map(([ruta, texto]) => <NavLink key={ruta} role="menuitem" to={ruta} onClick={(e) => { proteger(e, texto); if (!e.defaultPrevented) setAbierto(false); }} className="block px-4 py-2 text-sm text-slate-700 hover:bg-blue-50">{texto}</NavLink>)}
+    </div>}
+  </div>;
+}
+function Pendiente({ solicitarIngreso }) {
+  useEffect(() => { solicitarIngreso('Iniciá sesión para acceder a esta sección.'); }, [solicitarIngreso]);
+  return <div className="mx-auto max-w-xl px-5 py-14 text-center"><p className="text-slate-700">Iniciá sesión para continuar.</p><button onClick={() => solicitarIngreso('Iniciá sesión para acceder a esta sección.')} className="mt-4 rounded-xl bg-blue-600 px-5 py-3 text-white cursor-pointer">Iniciar sesión</button></div>;
+}
+
+export default function App() {
+  const navigate = useNavigate();
+  const [usuarioId, setUsuarioId] = useState(() => obtenerUsuarioIdActual());
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
+  const [modal, setModal] = useState({ abierto: false, motivo: '' });
+  const pedirLogin = useCallback((motivo = 'Iniciá sesión para continuar.') => setModal({ abierto: true, motivo }), []);
+  const cerrarModal = useCallback(() => setModal({ abierto: false, motivo: '' }), []);
+
+  useEffect(() => {
+    const actualizar = () => setUsuarioId(obtenerUsuarioIdActual());
+    obtenerDatosPersonales()
+    .catch(() => {})
+    .finally(() => {
+      actualizar();
+      setVerificandoSesion(false);
+    });
+    window.addEventListener('auth-changed', actualizar);
+    window.addEventListener('storage', actualizar);
+    return () => { window.removeEventListener('auth-changed', actualizar); window.removeEventListener('storage', actualizar); };
+  }, []);
+
+  const salir = async() => { await cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
+  const navegarProtegido = (e, destino) => {
+    if (usuarioId) return;
+    e.preventDefault();
+    pedirLogin(`Iniciá sesión para acceder a ${destino}.`);
+  };
+  const acceso = (elemento) => {
+    if (verificandoSesion) return null; 
+    return usuarioId ? elemento : <Pendiente solicitarIngreso={pedirLogin}/>;
+  };
+  return <>
+    <Routes>
+      <Route path="/iniciarSesion" element={<IniciarSesion/>}/>
+      <Route path="/registrarse" element={<Registrarse/>}/>
+      <Route path="/recuperar-clave" element={<RecuperarContrasena/>}/>
+      <Route path="/*" element={<>
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-40"><nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
+          <NavLink to="/empleos" className={claseEnlace}><Briefcase size={18} className="text-slate-400"/>Buscar empleos</NavLink>
+          <NavLink to="/recomendaciones" onClick={(e) => navegarProtegido(e, 'Mis recomendaciones')} className={claseEnlace}><Sparkles size={18} className="text-slate-400"/>Mis recomendaciones</NavLink>
+          <MenuPostulaciones proteger={navegarProtegido}/>
+          <NavLink to="/chatbot" onClick={(e) => navegarProtegido(e, 'Chatbot')} className={claseEnlace}><Bot size={18} className="text-blue-500"/>Chatbot</NavLink>
+          <NavLink to="/cvs" onClick={(e) => navegarProtegido(e, 'Mis CV')} className={claseEnlace}><FileText size={18}/>Mis CV</NavLink>
+          {usuarioId ? <MenuUsuario salir={salir}/> : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-blue-700`}><LogIn size={19}/>Iniciar sesión</button>}
+        </nav></header>
+        <main><Routes>
+          <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
+          <Route path="recomendaciones" element={acceso(<Recomendaciones usuarioId={usuarioId} onSolicitarLogin={pedirLogin}/>)}/>
+          <Route path="chatbot" element={acceso(<Chatbot/>)}/>
+          <Route path="cvs" element={acceso(<Cvs/>)}/>
+          <Route path="postulaciones/:seccion" element={acceso(<Postulaciones/>)}/>
+          <Route path="postulaciones" element={<Navigate to="/postulaciones/pendientes" replace/>}/>
+          <Route path="perfil/datos" element={acceso(<FormDatosPersonales actualizar/>)}/>
+          <Route path="perfil/laboral" element={acceso(<PerfilLaboral/>)}/>
+          <Route path="perfil/seguridad" element={acceso(<CambiarContrasena/>)}/>
+          <Route path="" element={<Navigate to="/empleos" replace/>}/>
+          <Route path="*" element={<Navigate to="/empleos" replace/>}/>
+        </Routes></main>
+      </>}/>
+    </Routes>
+    <AvisosGlobales/>
+    <ModalAutenticacion abierto={modal.abierto} motivo={modal.motivo} onCerrar={cerrarModal} onExito={cerrarModal}/>
+  </>;
+}

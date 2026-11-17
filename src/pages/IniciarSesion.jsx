@@ -1,128 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { iniciarSesion } from '../services/usuariosService';
-import Swal from 'sweetalert2'
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FormularioAutenticacion } from '../components/Autenticacion';
 
-const IniciarSesion=()=> {
+export default function IniciarSesion() {
   const navigate = useNavigate();
-  const[errors,setErrors]=useState({});
-  const [input, setInput] = useState({
-    email:"",
-    password:""
-  });
-
-  const handleChange=(e)=>{
-    const {name, value}=e.target;
-    setInput({...input,[name]:value})
-    const Name = name.charAt(0).toUpperCase() + name.slice(1);
-
-    setErrors({
-      ...errors,
-      [Name]: null
-    });
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await iniciarSesion(input);
-      navigate('/empleos');
-    } catch (err) {
-      setErrors(err.errors);
-      Swal.fire({
-        title:"Error al iniciar sesión",
-        text:err.message,
-        icon:"error"
-      })
-    }
-  };
-
+  const location = useLocation();
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white">
-        <div className="mx-auto max-w-6xl px-5 pt-14 pb-28">
-          <span className="inline-flex rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm font-medium">
+        <div className="max-w-6xl mx-auto px-5 pt-14 pb-28">
+          <span className="rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm">
             RecursivaMentes
           </span>
-          <h1 className="mt-5 text-3xl font-extrabold tracking-tight md:text-4xl">
-            Iniciá sesión
-          </h1>
-          <p className="mt-3 max-w-lg text-blue-100">
+          <h1 className="mt-5 text-3xl md:text-4xl font-extrabold">Iniciá sesión</h1>
+          <p className="mt-3 text-blue-100">
             Accedé a tus oportunidades laborales, recomendaciones y asistente.
           </p>
         </div>
       </section>
-
-      <div className="mx-auto -mt-16 max-w-md px-5 pb-16">
-        <form onSubmit={handleSubmit}
-          className="relative rounded-2xl border border-slate-100 bg-white p-7 shadow-lg md:p-9">
-
-          <h2 className="text-xl font-bold text-slate-900">
-            Ingresar a mi cuenta
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Completá tus datos para continuar.
-          </p>
-
-          <div className="mt-7">
-            <label htmlFor="email"
-              className="mb-2 block text-sm font-semibold text-slate-700">
-              Correo electrónico
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              required
-              autoComplete="email"
-              onChange={handleChange}
-              value={input.email}
-              placeholder="tu@correo.com"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-            {errors?.Email && (<p className="mt-1.5 text-sm text-red-600">{errors.Email[0]}</p>)}
-          </div>
-
-          <div className="mt-5">
-            <label htmlFor="password"
-              className="mb-2 block text-sm font-semibold text-slate-700">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              required
-              autoComplete="current-password"
-              onChange={handleChange}
-              value={input.password}
-              placeholder="Ingresá tu contraseña"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-            {errors?.Password && (<p className="mt-1.5 text-sm text-red-600">{errors.Password[0]}</p>)}
-          </div>
-
-          <button type="submit"
-            className="mt-7 w-full cursor-pointer rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">
-            Iniciar sesión
-          </button>
-          
-          <p className="mt-6 text-center text-sm text-slate-500">
-            ¿Todavía no tenés cuenta?
-          </p>
-
-          <button 
-            type="button" 
-            onClick={() => navigate("/registrarse")} 
-            className="mt-2 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Registrarse
-          </button>
-          
-        </form>
+      <div className="max-w-md mx-auto -mt-16 px-5 pb-16">
+        <div className="relative rounded-2xl border border-slate-100 bg-white p-7 md:p-9 shadow-lg">
+          {location.state?.contrasenaActualizada && (
+            <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+              Contraseña actualizada. Iniciá sesión nuevamente.
+            </p>
+          )}
+          <FormularioAutenticacion onExito={() => navigate('/empleos', { replace: true })} />
+        </div>
       </div>
     </main>
   );
 }
-
-export default IniciarSesion;
