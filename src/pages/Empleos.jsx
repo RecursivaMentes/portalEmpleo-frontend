@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import SearchBar from "../components/SearchBar";
+import DetalleOferta from '../components/DetalleOferta';
+import AccionesPostulacion from "../components/AccionesPostulacion";
 import { obtenerEmpleos } from "../services/empleosService";
 
 const filtrosIniciales = {
@@ -35,7 +37,7 @@ function Etiqueta({ children, color = "gray" }) {
   );
 }
 
-export default function Empleos() {
+export default function Empleos({ onSolicitarLogin }) {
   const [filtros, setFiltros] = useState(filtrosIniciales);
   const [empleos, setEmpleos] = useState([]);
   const [cargando, setCargando] = useState(false);
@@ -58,7 +60,8 @@ export default function Empleos() {
   }
 
   useEffect(() => {
-    buscar(filtrosIniciales);
+    // La consulta comienza tras el montaje, fuera del cuerpo sincrono del efecto.
+    Promise.resolve().then(() => buscar(filtrosIniciales));
   }, []);
 
   return (
@@ -127,8 +130,8 @@ export default function Empleos() {
           </div>
 
           {cargando && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
-              Buscando las mejores oportunidades...
+            <div aria-label="Cargando ofertas" role="status" className="space-y-4 animate-pulse">
+              {[1, 2, 3].map((n) => <div key={n} className="h-40 rounded-2xl border border-slate-200 bg-slate-200"/>)}
             </div>
           )}
 
@@ -216,6 +219,7 @@ export default function Empleos() {
                         >
                           Ver detalles →
                         </button>
+                        <AccionesPostulacion empleo={empleo} onSolicitarLogin={onSolicitarLogin}/>
                       </div>
                     </div>
                   </article>
@@ -226,60 +230,7 @@ export default function Empleos() {
         </section>
       </div>
 
-      {/* Modal de detalle */}
-      {empleoSeleccionado && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4"
-          onClick={() => setEmpleoSeleccionado(null)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-detalle-empleo"
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-7 max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start gap-4">
-              <h2 id="titulo-detalle-empleo" className="text-2xl font-bold text-slate-900">
-                {empleoSeleccionado.titulo}
-              </h2>
-
-              <button
-                type="button"
-                onClick={() => setEmpleoSeleccionado(null)}
-                aria-label="Cerrar detalle"
-                className="text-slate-400 hover:text-slate-700 text-2xl cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-
-            <p className="text-slate-600 mt-5 leading-relaxed">
-              {empleoSeleccionado.descripcion || "Sin descripción disponible."}
-            </p>
-
-            <div className="mt-6 space-y-3 text-sm text-slate-700">
-              <p>📍 <strong>Ubicación:</strong> {empleoSeleccionado.ubicacion || "No especificada"}</p>
-              <p>💼 <strong>Modalidad:</strong> {empleoSeleccionado.modalidad || "No especificada"}</p>
-              <p>📋 <strong>Contrato:</strong> {empleoSeleccionado.tipoContrato || "No especificado"}</p>
-              <p>
-                💰 <strong>Salario:</strong>{" "}
-                {formatoMoneda(empleoSeleccionado.salarioMin) ?? "No informado"}
-                {" – "}
-                {formatoMoneda(empleoSeleccionado.salarioMax) ?? "No informado"}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setEmpleoSeleccionado(null)}
-              className="mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold cursor-pointer"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {empleoSeleccionado && <DetalleOferta empleo={empleoSeleccionado} onCerrar={() => setEmpleoSeleccionado(null)} onSolicitarLogin={onSolicitarLogin}/>} 
     </main>
   );
 }

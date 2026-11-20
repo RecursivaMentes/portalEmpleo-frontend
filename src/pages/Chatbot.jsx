@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { Bot, Menu, MessageSquare, Plus, Send } from 'lucide-react';
 import { listarChats, crearChat, obtenerMensajes, enviarMensaje } from '../services/chatbotService';
+
+const formatearFecha = (f) => new Date(f).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 const Chatbot=()=> {
     const [chats, setChats] = useState([]);
@@ -7,6 +10,8 @@ const Chatbot=()=> {
     const [mensajes, setMensajes] = useState([]);
     const [nuevoMensaje, setNuevoMensaje] = useState("");
     const [estaCargando, setEstaCargando] = useState(false);
+    const [panelAbierto, setPanelAbierto] = useState(false);
+    const [error, setError] = useState("");
     const desplegarMensajesFin = useRef(null);
 
     //lista de chats al iniciar
@@ -18,13 +23,15 @@ const Chatbot=()=> {
 
     // para cargar los mensajes cuando el usuario cambie de chat
     useEffect(() => {
+        let activo = true;
         if (chatActivoId) {
             obtenerMensajes(chatActivoId)
-                .then(data => setMensajes(data))
-                .catch(err => console.error(err));
+                .then(data => { if (activo) setMensajes(data); })
+                .catch(err => { if (activo) console.error(err); });
         } else {
-            setMensajes([]);
+            Promise.resolve().then(() => { if (activo) setMensajes([]); });
         }
+        return () => { activo = false; };
     }, [chatActivoId]);
 
     // Auto-scroll al último mensaje enviado o recibido
@@ -35,13 +42,17 @@ const Chatbot=()=> {
     // 3. Crear un nuevo tema de conversación
     const handleCrearNuevoChat = async () => {
         try {
+            setError("");
             const nuevoChat = await crearChat(); // { id, tipo, fechaInicio }
             setChats([nuevoChat, ...chats]); // Lo agrega arriba en la lista
             setChatActivoId(nuevoChat.id);   // Lo selecciona automáticamente
-        } catch (error) {
-            alert(error.message);
+            setPanelAbierto(false);
+        } catch {
+            setError("No se pudo crear el chat");
         }
     };
+
+    const seleccionarChat = (id) => { setChatActivoId(id); setPanelAbierto(false); };
 
     // 4. Enviar mensaje. La API responde con todo el texto junto (no hay streaming):
     //    { mensajeUsuario: { id, rol, contenido, fecha }, respuesta: { id, rol, contenido, fecha } }
@@ -54,6 +65,7 @@ const Chatbot=()=> {
         const idTemporal = `tmp-${Date.now()}`;
         setMensajes(prev => [...prev, { id: idTemporal, rol: 'Usuario', contenido: texto }]);
         setNuevoMensaje("");
+        setError("");
         setEstaCargando(true); // Evita envíos dobles mientras responde la API
 
         try {
@@ -69,55 +81,64 @@ const Chatbot=()=> {
             // Si la API falla no guarda nada: se quita el mensaje y se devuelve el texto al cuadro para reintentar.
             setMensajes(prev => prev.filter(m => m.id !== idTemporal));
             setNuevoMensaje(texto);
-            alert(error.message);
+            setError(error.message);
         } finally {
             setEstaCargando(false);
         }
     };
 
+    const avatar = <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={16}/></span>;
+
     return (
-        <div style={{ display: 'flex', h: '100vh', height: '100vh', fontFamily: 'sans-serif' }}>
-            
+        <div className="relative flex h-[calc(100vh-3.25rem)] bg-slate-50">
+
             {/* PANEL IZQUIERDO: LISTA DE CHATS */}
-            <div style={{ width: '250px', background: '#202123', color: 'white', padding: '15px', display: 'flex', flexDirection: 'column' }}>
-                <button onClick={handleCrearNuevoChat} style={{ padding: '10px', background: '#10a37f', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginBottom: '20px' }}>
-                    + Nuevo Chat
+            <aside className={`${panelAbierto ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 flex-col border-r border-slate-200 bg-white p-4 shadow-xl md:static md:flex md:shadow-none`}>
+                <button onClick={handleCrearNuevoChat} className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
+                    <Plus size={18}/> Nuevo chat
                 </button>
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                    <h3>Tus Conversaciones</h3>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                        {chats.map(c => (
-                            <li 
-                                key={c.id} 
-                                onClick={() => setChatActivoId(c.id)}
-                                style={{ padding: '10px', margin: '5px 0', background: chatActivoId === c.id ? '#343541' : 'transparent', borderRadius: '5px', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                            >
-                                Chat del {new Date(c.fechaInicio).toLocaleString()} 
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
+                <h3 className="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Tus conversaciones</h3>
+                <ul className="flex-1 space-y-1 overflow-y-auto">
+                    {chats.length === 0 && <li className="px-2 text-sm text-slate-400">Todavía no tenés conversaciones.</li>}
+                    {chats.map(c => (
+                        <li key={c.id}>
+                            <button onClick={() => seleccionarChat(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${chatActivoId === c.id ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                <MessageSquare size={16} className="shrink-0"/>
+                                <span className="truncate">Chat del {formatearFecha(c.fechaInicio)}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </aside>
 
             {/* PANEL DERECHO: CONVERSACIÓN ACTIVA */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#343541', color: 'white' }}>
+            <section className="flex min-w-0 flex-1 flex-col">
+                <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 md:px-6">
+                    <button onClick={() => setPanelAbierto(v => !v)} aria-label="Ver conversaciones" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:hidden"><Menu size={20}/></button>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={20}/></span>
+                    <p className="text-sm font-semibold text-slate-800">Asistente de empleo</p>
+                </div>
+
                 {chatActivoId ? (
                     <>
                         {/* Mensajes */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-                            {mensajes.map((m, index) => (
-                            <div key={m.id || index} style={{ display: 'flex', justifyContent: m.rol === 'Usuario' ? 'flex-end' : 'flex-start', margin: '15px 0' }}>
-                                <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: m.rol === 'Usuario' ? '#10a37f' : '#444654', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
-                                    <strong>{m.rol === 'Usuario' ? 'Tú: ' : 'Asistente: '}</strong>
-                                        {m.contenido}
-                                </div>
-                            </div>
-                            ))}
+                        <div className="flex-1 space-y-5 overflow-y-auto px-4 py-6 md:px-6">
+                            {mensajes.map((m, index) => {
+                                const esUsuario = m.rol === 'Usuario';
+                                return (
+                                    <div key={m.id || index} className={`flex items-end gap-2 ${esUsuario ? 'justify-end' : 'justify-start'}`}>
+                                        {!esUsuario && avatar}
+                                        <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm md:max-w-[70%] ${esUsuario ? 'rounded-br-sm bg-blue-600 text-white' : 'rounded-bl-sm border border-slate-200 bg-white text-slate-700'}`}>
+                                            {m.contenido}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                             {estaCargando && (
-                                <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '15px 0' }}>
-                                    <div style={{ maxWidth: '70%', padding: '12px', borderRadius: '10px', background: '#444654', color: '#aaa', lineHeight: '1.4' }}>
-                                        <strong>Asistente: </strong>
-                                            <em>Pensando...</em>
+                                <div className="flex items-end gap-2">
+                                    {avatar}
+                                    <div className="flex gap-1 rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-4 py-3 shadow-sm" aria-label="El asistente está escribiendo">
+                                        {[0, 150, 300].map(d => <span key={d} style={{ animationDelay: `${d}ms` }} className="h-2 w-2 animate-bounce rounded-full bg-slate-400"/>)}
                                     </div>
                                 </div>
                             )}
@@ -125,26 +146,33 @@ const Chatbot=()=> {
                         </div>
 
                         {/* Input de Envío */}
-                        <form onSubmit={handleEnviar} style={{ padding: '20px', background: '#40414f', display: 'flex' }}>
-                            <input 
-                                type="text" 
-                                value={nuevoMensaje}
-                                onChange={(e) => setNuevoMensaje(e.target.value)}
-                                placeholder="Escribe un mensaje..."
-                                style={{ flex: 1, padding: '12px', borderRadius: '5px', border: 'none', background: '#40414f', color: 'white', fontSize: '16px', outline: 'none' }}
-                                disabled={estaCargando}
-                            />
-                            <button type="submit" disabled={estaCargando} style={{ marginLeft: '10px', padding: '0 20px', background: '#10a37f', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-                                Enviar
-                            </button>
-                        </form>
+                        <div className="border-t border-slate-200 bg-white px-4 py-3 md:px-6">
+                            {error && <p role="alert" className="mx-auto mb-2 max-w-3xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+                            <form onSubmit={handleEnviar} className="mx-auto flex max-w-3xl items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={nuevoMensaje}
+                                    onChange={(e) => setNuevoMensaje(e.target.value)}
+                                    placeholder="Escribí un mensaje..."
+                                    disabled={estaCargando}
+                                    className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:opacity-60"
+                                />
+                                <button type="submit" disabled={estaCargando || !nuevoMensaje.trim()} aria-label="Enviar" className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
+                                    <Send size={18}/>
+                                </button>
+                            </form>
+                        </div>
                     </>
                 ) : (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa0a6' }}>
-                        <h2>Selecciona un chat o crea uno nuevo para empezar a hablar con el asistente.</h2>
+                    <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+                        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-lg"><Bot size={32}/></span>
+                        <h2 className="mt-5 text-xl font-bold text-slate-800">¿En qué te puedo ayudar?</h2>
+                        <p className="mt-2 max-w-md text-sm text-slate-500">Creá una conversación nueva o elegí una existente para hablar con el asistente.</p>
+                        {error && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+                        <button onClick={handleCrearNuevoChat} className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"><Plus size={18}/> Empezar un chat</button>
                     </div>
                 )}
-            </div>
+            </section>
         </div>
     );
 }
