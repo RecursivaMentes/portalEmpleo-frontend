@@ -289,10 +289,10 @@ export default function Cvs() {
   };
 
   const inputClase =
-    "w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500";
 
   const botonPrimario =
-    "inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 cursor-pointer";
+    "inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 cursor-pointer";
 
   const botonSecundario =
     "inline-flex items-center justify-center gap-2 border border-slate-300 px-5 py-2.5 rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer";
@@ -326,7 +326,7 @@ export default function Cvs() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white">
+      <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white">
         <div className="max-w-6xl mx-auto px-5 py-14">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold mb-5">
             <FileText size={16} />
@@ -337,7 +337,7 @@ export default function Cvs() {
             Tu experiencia, tu próximo gran paso.
           </h1>
 
-          <p className="text-lg text-blue-100 max-w-3xl">
+          <p className="text-lg text-primary-100 max-w-3xl">
             Creá, administrá y potenciá tus currículums con ayuda
             de la inteligencia artificial.
           </p>
@@ -368,7 +368,7 @@ export default function Cvs() {
               <button
                 type="button"
                 onClick={abrirSubida}
-                className="inline-flex items-center gap-2 border border-blue-600 text-blue-600 px-5 py-2.5 rounded-lg hover:bg-blue-50 cursor-pointer"
+                className="inline-flex items-center gap-2 border border-primary-600 text-primary-600 px-5 py-2.5 rounded-lg hover:bg-primary-50 cursor-pointer"
               >
                 <Upload size={18} />
                 Subir CV
@@ -377,7 +377,7 @@ export default function Cvs() {
               <button
                 type="button"
                 onClick={abrirGeneracionIA}
-                className="inline-flex items-center gap-2 border border-violet-300 text-violet-700 px-5 py-2.5 rounded-lg hover:bg-violet-50 cursor-pointer"
+                className="borde-ia inline-flex items-center gap-2 text-violet-700 font-medium px-5 py-2.5 rounded-lg cursor-pointer"
               >
                 <Sparkles size={18} />
                 Generar con IA
@@ -428,7 +428,7 @@ export default function Cvs() {
                     <div className="flex items-start gap-3">
                       <FileText
                         size={26}
-                        className="text-blue-600 shrink-0"
+                        className="text-primary-600 shrink-0"
                       />
 
                       <div className="flex-1 min-w-0">
@@ -437,7 +437,7 @@ export default function Cvs() {
                         </h3>
 
                         {cv.esPrincipal && (
-                          <span className="inline-block mt-2 text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                          <span className="inline-block mt-2 text-xs font-semibold bg-primary-100 text-primary-700 px-3 py-1 rounded-full">
                             CV principal
                           </span>
                         )}
@@ -458,8 +458,8 @@ export default function Cvs() {
                           onClick={() => handleVistaPrevia(cv)}
                           disabled={cargandoVistaPrevia}
                           className="inline-flex items-center justify-center gap-2 px-3 py-2.5
-                                    border border-blue-600 text-blue-600 rounded-lg
-                                    hover:bg-blue-50 disabled:opacity-50 cursor-pointer
+                                    border border-primary-600 text-primary-600 rounded-lg
+                                    hover:bg-primary-50 disabled:opacity-50 cursor-pointer
                                     text-sm transition-colors"
                         >
                           <Eye size={17} />
@@ -471,7 +471,7 @@ export default function Cvs() {
                           type="button"
                           onClick={() => handleDescargar(cv)}
                           className="inline-flex items-center justify-center gap-2 px-3 py-2.5
-                                    bg-blue-600 text-white rounded-lg hover:bg-blue-700
+                                    bg-primary-600 text-white rounded-lg hover:bg-primary-700
                                     cursor-pointer text-sm transition-colors"
                         >
                           <Download size={17} />
@@ -484,8 +484,8 @@ export default function Cvs() {
                             type="button"
                             onClick={() => handleDescargarOriginal(cv)}
                             className="col-span-2 inline-flex items-center justify-center
-                                      gap-2 px-3 py-2.5 border border-blue-300
-                                      text-blue-600 rounded-lg hover:bg-blue-50
+                                      gap-2 px-3 py-2.5 border border-primary-300
+                                      text-primary-600 rounded-lg hover:bg-primary-50
                                       cursor-pointer text-sm transition-colors"
                           >
                             <Download size={17} />
@@ -853,7 +853,7 @@ export default function Cvs() {
               <button
                 type="submit"
                 disabled={generando}
-                className={botonPrimario}
+                className={`${botonPrimario} borde-ia [--ia-fondo:var(--color-primary-600)]`}
               >
                 {generando ? (
                   <>
@@ -897,7 +897,7 @@ export default function Cvs() {
               <div className="flex items-center gap-2 min-w-0">
                 <FileText
                   size={20}
-                  className="text-blue-600 shrink-0"
+                  className="text-primary-600 shrink-0"
                 />
                 <h2 className="font-semibold text-slate-800 truncate">
                   {vistaPrevia.titulo}

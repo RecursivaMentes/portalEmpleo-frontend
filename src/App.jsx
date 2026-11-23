@@ -17,7 +17,7 @@ import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual } from './services/usuariosService';
 
 const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
-const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200'}`;
+const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-primary-700 hover:border-primary-200'}`;
 
 function MenuUsuario({ salir }) {
   const [abierto, setAbierto] = useState(false);
@@ -37,7 +37,7 @@ function MenuUsuario({ salir }) {
     ['/cvs', 'Mis CV', FileText],
   ];
   return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} >
-    <button type="button" aria-label="Menú de usuario" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-600 hover:text-blue-700`}><UserCircle size={23}/><span className="hidden sm:inline">Mi cuenta</span></button>
+    <button type="button" aria-label="Menú de usuario" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-600 hover:text-primary-700`}><UserCircle size={23}/><span className="hidden sm:inline">Mi cuenta</span></button>
     {abierto && <div role="menu" className="absolute right-0 top-full z-50 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
       {opciones.map(([ruta, titulo, Icono]) => <NavLink key={ruta} role="menuitem" to={ruta} onClick={() => setAbierto(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"><Icono size={16}/>{titulo}</NavLink>)}
       <div className="my-1 border-t border-slate-100"/><button role="menuitem" type="button" onClick={() => { setAbierto(false); salir(); }} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-700 hover:bg-red-50 cursor-pointer"><LogOut size={16}/>Cerrar sesión</button>
@@ -58,15 +58,15 @@ function MenuPostulaciones({ proteger }) {
   }, [abierto]);
   const items = [['/postulaciones/pendientes', 'Pendientes'], ['/postulaciones/aprobaciones', 'Requieren tu aprobación'], ['/postulaciones/realizadas', 'Realizadas']];
   return <div ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} className="relative" >
-    <button type="button" aria-label="Postulaciones" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200`}><ClipboardList size={18}/>Postulaciones<ChevronDown size={14}/></button>
+    <button type="button" aria-label="Postulaciones" aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto(true)} className={`${enlaceBase} border-transparent text-slate-500 hover:text-primary-700 hover:border-primary-200`}><ClipboardList size={18}/>Postulaciones<ChevronDown size={14}/></button>
     {abierto && <div role="menu" className="absolute left-0 top-full z-50 w-60 rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
-      {items.map(([ruta, texto]) => <NavLink key={ruta} role="menuitem" to={ruta} onClick={(e) => { proteger(e, texto); if (!e.defaultPrevented) setAbierto(false); }} className="block px-4 py-2 text-sm text-slate-700 hover:bg-blue-50">{texto}</NavLink>)}
+      {items.map(([ruta, texto]) => <NavLink key={ruta} role="menuitem" to={ruta} onClick={(e) => { proteger(e, texto); if (!e.defaultPrevented) setAbierto(false); }} className="block px-4 py-2 text-sm text-slate-700 hover:bg-primary-50">{texto}</NavLink>)}
     </div>}
   </div>;
 }
 function Pendiente({ solicitarIngreso }) {
   useEffect(() => { solicitarIngreso('Iniciá sesión para acceder a esta sección.'); }, [solicitarIngreso]);
-  return <div className="mx-auto max-w-xl px-5 py-14 text-center"><p className="text-slate-700">Iniciá sesión para continuar.</p><button onClick={() => solicitarIngreso('Iniciá sesión para acceder a esta sección.')} className="mt-4 rounded-xl bg-blue-600 px-5 py-3 text-white cursor-pointer">Iniciar sesión</button></div>;
+  return <div className="mx-auto max-w-xl px-5 py-14 text-center"><p className="text-slate-700">Iniciá sesión para continuar.</p><button onClick={() => solicitarIngreso('Iniciá sesión para acceder a esta sección.')} className="mt-4 rounded-xl bg-primary-600 px-5 py-3 text-white cursor-pointer">Iniciar sesión</button></div>;
 }
 
 export default function App() {
@@ -117,7 +117,7 @@ export default function App() {
           <NavLink to="/recomendaciones" onClick={(e) => navegarProtegido(e, 'Mis recomendaciones')} className={claseEnlace}><Sparkles size={18} className="text-slate-400"/>Mis recomendaciones</NavLink>
           <MenuPostulaciones proteger={navegarProtegido}/>
           <NavLink to="/cvs" onClick={(e) => navegarProtegido(e, 'Mis CV')} className={claseEnlace}><FileText size={18}/>Mis CV</NavLink>
-          {usuarioId ? <MenuUsuario salir={salir}/> : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-blue-700`}><LogIn size={19}/>Iniciar sesión</button>}
+          {usuarioId ? <MenuUsuario salir={salir}/> : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-primary-700`}><LogIn size={19}/>Iniciar sesión</button>}
         </nav></header>
         <main><Routes>
           <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
@@ -133,7 +133,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/empleos" replace/>}/>
         </Routes></main>
         {usuarioId && chatMontado && <aside aria-hidden={!chatVisible} inert={!chatVisible} className={`fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 sm:w-[420px] ${chatVisible ? 'translate-x-0' : 'translate-x-full'}`}><Chatbot onCerrar={() => setChatAbierto(false)}/></aside>}
-        {!chatVisible && <button type="button" onClick={alternarChat} aria-label="Abrir chatbot" title="Chatbot" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/40 ring-4 ring-white/80 transition hover:scale-110 hover:shadow-xl focus:outline-none focus-visible:ring-indigo-300"><MessageCircle size={26}/></button>}
+        {!chatVisible && <button type="button" onClick={alternarChat} aria-label="Abrir chatbot" title="Chatbot" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full borde-ia [--ia-fondo:var(--color-accent-600)] text-white transition hover:scale-110 focus:outline-none"><MessageCircle size={26}/></button>}
       </>}/>
     </Routes>
     <AvisosGlobales/>

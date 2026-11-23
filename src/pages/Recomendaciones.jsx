@@ -98,7 +98,7 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
 
-      <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white">
+      <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white">
         <div className="max-w-6xl mx-auto px-5 py-8">
           <span className="inline-flex rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-medium mb-5">
             Oportunidades pensadas para tu perfil
@@ -108,7 +108,7 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
             Encontrá el empleo ideal para vos.
           </h1>
 
-          <p className="text-blue-100 mt-4 text-lg max-w-2xl">
+          <p className="text-primary-100 mt-4 text-lg max-w-2xl">
             Descubrí ofertas compatibles con tus habilidades
             y conocé qué requisitos cumplís y cuáles podés mejorar.
           </p>
@@ -142,7 +142,7 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
                 onChange={(e) =>
                   setCompatibilidadMinima(Number(e.target.value))
                 }
-                className="h-11 px-3 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="h-11 px-3 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
               >
                 <option value={0}>Todas</option>
                 <option value={25}>Desde 25%</option>
@@ -172,7 +172,7 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
             </div>
 
             {!cargando && !error && (
-              <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 text-xs font-medium">
+              <span className="inline-flex items-center rounded-full bg-primary-50 text-primary-700 border border-primary-100 px-3 py-1 text-xs font-medium">
                 {filtradas.length} resultados
               </span>
             )}
@@ -213,31 +213,31 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
                   porcentaje >= 70
                     ? "text-emerald-600"
                     : porcentaje >= 40
-                      ? "text-blue-600"
+                      ? "text-primary-600"
                       : "text-amber-600";
 
                 const colorBarra =
                   porcentaje >= 70
                     ? "bg-emerald-500"
                     : porcentaje >= 40
-                      ? "bg-blue-500"
+                      ? "bg-primary-500"
                       : "bg-amber-500";
 
                 return (
                   <article
                     key={empleo.empleoId ?? empleo.id ?? indice}
-                    className="group bg-white border border-slate-200 rounded-2xl p-6 md:p-7 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200"
+                    className="group bg-white border border-slate-200 rounded-2xl p-6 md:p-7 shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-200"
                   >
                     <div className="flex flex-col lg:flex-row gap-6">
 
                       <div className="flex-1 min-w-0">
                         <div className="mb-3">
-                          <span className="inline-flex rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 text-xs font-semibold">
+                          <span className="inline-flex rounded-full bg-primary-50 text-primary-700 border border-primary-100 px-3 py-1 text-xs font-semibold">
                             Recomendado para vos
                           </span>
                         </div>
 
-                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary-700 transition-colors">
                           {empleo.titulo}
                         </h3>
 
@@ -319,7 +319,7 @@ export default function Recomendaciones({ usuarioId, onSolicitarLogin }) {
                         <button
                           type="button"
                           onClick={() => setOfertaSeleccionada(empleo)}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-5 py-3 text-sm font-semibold cursor-pointer transition-colors"
+                          className="w-full bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-5 py-3 text-sm font-semibold cursor-pointer transition-colors"
                         >
                           Ver oferta →
                         </button>

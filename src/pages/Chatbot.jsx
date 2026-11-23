@@ -87,14 +87,14 @@ const Chatbot=({ onCerrar })=> {
         }
     };
 
-    const avatar = <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={16}/></span>;
+    const avatar = <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-white"><Bot size={16}/></span>;
 
     return (
         <div className="relative flex h-full overflow-hidden bg-slate-50">
 
             {/* PANEL IZQUIERDO: LISTA DE CHATS */}
             <aside className={`${panelAbierto ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 max-w-[85%] flex-col border-r border-slate-200 bg-white p-4 shadow-xl`}>
-                <button onClick={handleCrearNuevoChat} className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
+                <button onClick={handleCrearNuevoChat} className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-accent-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
                     <Plus size={18}/> Nuevo chat
                 </button>
                 <h3 className="mb-2 mt-6 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Tus conversaciones</h3>
@@ -102,7 +102,7 @@ const Chatbot=({ onCerrar })=> {
                     {chats.length === 0 && <li className="px-2 text-sm text-slate-400">Todavía no tenés conversaciones.</li>}
                     {chats.map(c => (
                         <li key={c.id}>
-                            <button onClick={() => seleccionarChat(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${chatActivoId === c.id ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+                            <button onClick={() => seleccionarChat(c.id)} className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${chatActivoId === c.id ? 'bg-primary-50 font-semibold text-primary-700' : 'text-slate-600 hover:bg-slate-100'}`}>
                                 <MessageSquare size={16} className="shrink-0"/>
                                 <span className="truncate">Chat del {formatearFecha(c.fechaInicio)}</span>
                             </button>
@@ -115,7 +115,7 @@ const Chatbot=({ onCerrar })=> {
             <section className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
                     <button onClick={() => setPanelAbierto(v => !v)} aria-label="Ver conversaciones" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Menu size={20}/></button>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={20}/></span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-white"><Bot size={20}/></span>
                     <p className="flex-1 text-sm font-semibold text-slate-800">Asistente de empleo</p>
                     {onCerrar && <button onClick={onCerrar} aria-label="Cerrar chat" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={20}/></button>}
                 </div>
@@ -129,7 +129,7 @@ const Chatbot=({ onCerrar })=> {
                                 return (
                                     <div key={m.id || index} className={`flex items-end gap-2 ${esUsuario ? 'justify-end' : 'justify-start'}`}>
                                         {!esUsuario && avatar}
-                                        <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm md:max-w-[70%] ${esUsuario ? 'rounded-br-sm bg-blue-600 text-white' : 'rounded-bl-sm border border-slate-200 bg-white text-slate-700'}`}>
+                                        <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm md:max-w-[70%] ${esUsuario ? 'rounded-br-sm bg-primary-600 text-white' : 'rounded-bl-sm border border-slate-200 bg-white text-slate-700'}`}>
                                             {m.contenido}
                                         </div>
                                     </div>
@@ -156,9 +156,9 @@ const Chatbot=({ onCerrar })=> {
                                     onChange={(e) => setNuevoMensaje(e.target.value)}
                                     placeholder="Escribí un mensaje..."
                                     disabled={estaCargando}
-                                    className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:opacity-60"
+                                    className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-800 outline-none transition focus:border-primary-400 focus:bg-white focus:ring-4 focus:ring-primary-100 disabled:opacity-60"
                                 />
-                                <button type="submit" disabled={estaCargando || !nuevoMensaje.trim()} aria-label="Enviar" className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40">
+                                <button type="submit" disabled={estaCargando || !nuevoMensaje.trim()} aria-label="Enviar" className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-40">
                                     <Send size={18}/>
                                 </button>
                             </form>
@@ -166,11 +166,11 @@ const Chatbot=({ onCerrar })=> {
                     </>
                 ) : (
                     <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white shadow-lg"><Bot size={32}/></span>
+                        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-violet-600 text-white shadow-lg"><Bot size={32}/></span>
                         <h2 className="mt-5 text-xl font-bold text-slate-800">¿En qué te puedo ayudar?</h2>
                         <p className="mt-2 max-w-md text-sm text-slate-500">Creá una conversación nueva o elegí una existente para hablar con el asistente.</p>
                         {error && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-                        <button onClick={handleCrearNuevoChat} className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"><Plus size={18}/> Empezar un chat</button>
+                        <button onClick={handleCrearNuevoChat} className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700"><Plus size={18}/> Empezar un chat</button>
                     </div>
                 )}
             </section>

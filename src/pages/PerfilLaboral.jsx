@@ -13,9 +13,9 @@ const nivelesEducativos = ['Primaria', 'Secundaria', 'Terciaria', 'Universitaria
 const estadosFormacion = [['EnCurso', 'En curso'], ['Finalizado', 'Finalizado'], ['Incompleto', 'Incompleto']];
 const nivelesHabilidad = [['', 'Sin especificar'], ['Basico', 'Básico'], ['Intermedio', 'Intermedio'], ['Avanzado', 'Avanzado']];
 const nivelesIdioma = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Nativo'];
-const campoClase = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+const campoClase = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100';
 const botonSecundario = 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 cursor-pointer';
-const botonPrincipal = 'inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 cursor-pointer';
+const botonPrincipal = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60 cursor-pointer';
 const formatoFecha = (valor) => typeof valor === 'string' ? valor.slice(0, 10) : '';
 function normalizar(perfil) {
   return {
@@ -203,7 +203,7 @@ export default function PerfilLaboral() {
   const vacioError = error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error} {!original && <button type="button" onClick={() => { setCargando(true); setError(''); setRecarga((n) => n + 1); }} className="ml-2 underline cursor-pointer">Volver a consultar</button>}</div>;
 
   return <main className="min-h-screen bg-slate-50 pb-20">
-    <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white"><div className="mx-auto max-w-6xl px-5 py-10"><span className="inline-flex rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm">Mi cuenta</span><h1 className="mt-4 text-3xl font-extrabold">Perfil laboral</h1><p className="mt-2 text-blue-100">Completá tus datos profesionales para mejorar tus oportunidades laborales.</p></div></section>
+    <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white"><div className="mx-auto max-w-6xl px-5 py-10"><span className="inline-flex rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm">Mi cuenta</span><h1 className="mt-4 text-3xl font-extrabold">Perfil laboral</h1><p className="mt-2 text-primary-100">Completá tus datos profesionales para mejorar tus oportunidades laborales.</p></div></section>
     <div className="mx-auto max-w-4xl space-y-5 px-5 pt-8">
       {cargando ? <div aria-label="Cargando perfil laboral" className="space-y-4 animate-pulse">{[1, 2, 3, 4, 5].map((n) => <div key={n} className="h-20 rounded-2xl border border-slate-200 bg-white p-5"><div className="h-5 w-48 rounded-lg bg-slate-200" /></div>)}</div> : <>
         {vacioError}
