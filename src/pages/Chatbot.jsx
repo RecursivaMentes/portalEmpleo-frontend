@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bot, Menu, MessageSquare, Plus, Send } from 'lucide-react';
+import { Bot, Menu, MessageSquare, Plus, Send, X } from 'lucide-react';
 import { listarChats, crearChat, obtenerMensajes, enviarMensaje } from '../services/chatbotService';
 
 const formatearFecha = (f) => new Date(f).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-const Chatbot=()=> {
+const Chatbot=({ onCerrar })=> {
     const [chats, setChats] = useState([]);
     const [chatActivoId, setChatActivoId] = useState(null);
     const [mensajes, setMensajes] = useState([]);
@@ -90,10 +90,10 @@ const Chatbot=()=> {
     const avatar = <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={16}/></span>;
 
     return (
-        <div className="relative flex h-[calc(100vh-3.25rem)] bg-slate-50">
+        <div className="relative flex h-full overflow-hidden bg-slate-50">
 
             {/* PANEL IZQUIERDO: LISTA DE CHATS */}
-            <aside className={`${panelAbierto ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 flex-col border-r border-slate-200 bg-white p-4 shadow-xl md:static md:flex md:shadow-none`}>
+            <aside className={`${panelAbierto ? 'flex' : 'hidden'} absolute inset-y-0 left-0 z-20 w-72 max-w-[85%] flex-col border-r border-slate-200 bg-white p-4 shadow-xl`}>
                 <button onClick={handleCrearNuevoChat} className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
                     <Plus size={18}/> Nuevo chat
                 </button>
@@ -113,10 +113,11 @@ const Chatbot=()=> {
 
             {/* PANEL DERECHO: CONVERSACIÓN ACTIVA */}
             <section className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 md:px-6">
-                    <button onClick={() => setPanelAbierto(v => !v)} aria-label="Ver conversaciones" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:hidden"><Menu size={20}/></button>
+                <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
+                    <button onClick={() => setPanelAbierto(v => !v)} aria-label="Ver conversaciones" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Menu size={20}/></button>
                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-white"><Bot size={20}/></span>
-                    <p className="text-sm font-semibold text-slate-800">Asistente de empleo</p>
+                    <p className="flex-1 text-sm font-semibold text-slate-800">Asistente de empleo</p>
+                    {onCerrar && <button onClick={onCerrar} aria-label="Cerrar chat" className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={20}/></button>}
                 </div>
 
                 {chatActivoId ? (
@@ -146,7 +147,7 @@ const Chatbot=()=> {
                         </div>
 
                         {/* Input de Envío */}
-                        <div className="border-t border-slate-200 bg-white px-4 py-3 md:px-6">
+                        <div className="border-t border-slate-200 bg-white px-4 py-3">
                             {error && <p role="alert" className="mx-auto mb-2 max-w-3xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
                             <form onSubmit={handleEnviar} className="mx-auto flex max-w-3xl items-center gap-2">
                                 <input

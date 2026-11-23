@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Routes, Route, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import { Briefcase, Sparkles, MessageCircle, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
 import Empleos from './pages/Empleos';
 import Recomendaciones from './pages/Recomendaciones';
@@ -71,7 +71,8 @@ function Pendiente({ solicitarIngreso }) {
 
 export default function App() {
   const navigate = useNavigate();
-  const enChatbot = useLocation().pathname.startsWith('/chatbot');
+  const [chatAbierto, setChatAbierto] = useState(false);
+  const [chatMontado, setChatMontado] = useState(false);
   const [usuarioId, setUsuarioId] = useState(() => obtenerUsuarioIdActual());
   const [modal, setModal] = useState({ abierto: false, motivo: '' });
   const pedirLogin = useCallback((motivo = 'Iniciá sesión para continuar.') => setModal({ abierto: true, motivo }), []);
@@ -84,7 +85,20 @@ export default function App() {
     return () => { window.removeEventListener('auth-changed', actualizar); window.removeEventListener('storage', actualizar); };
   }, []);
 
-  const salir = () => { cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
+  const alternarChat = () => {
+    if (!usuarioId) { pedirLogin('Iniciá sesión para acceder a Chatbot.'); return; }
+    setChatMontado(true);
+    setChatAbierto(v => !v);
+  };
+  const chatVisible = chatAbierto && !!usuarioId;
+  useEffect(() => {
+    if (!chatVisible) return;
+    const escapar = (e) => { if (e.key === 'Escape') setChatAbierto(false); };
+    document.addEventListener('keydown', escapar);
+    return () => document.removeEventListener('keydown', escapar);
+  }, [chatVisible]);
+
+  const salir = () => { setChatAbierto(false); setChatMontado(false); cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
   const navegarProtegido = (e, destino) => {
     if (usuarioId) return;
     e.preventDefault();
@@ -108,7 +122,7 @@ export default function App() {
         <main><Routes>
           <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
           <Route path="recomendaciones" element={acceso(<Recomendaciones usuarioId={usuarioId} onSolicitarLogin={pedirLogin}/>)}/>
-          <Route path="chatbot" element={acceso(<Chatbot/>)}/>
+          <Route path="chatbot" element={<Navigate to="/empleos" replace/>}/>
           <Route path="cvs" element={acceso(<Cvs/>)}/>
           <Route path="postulaciones/:seccion" element={acceso(<Postulaciones/>)}/>
           <Route path="postulaciones" element={<Navigate to="/postulaciones/pendientes" replace/>}/>
@@ -118,7 +132,8 @@ export default function App() {
           <Route path="" element={<Navigate to="/empleos" replace/>}/>
           <Route path="*" element={<Navigate to="/empleos" replace/>}/>
         </Routes></main>
-        {!enChatbot && <NavLink to="/chatbot" onClick={(e) => navegarProtegido(e, 'Chatbot')} aria-label="Abrir chatbot" title="Chatbot" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/40 ring-4 ring-white/80 transition hover:scale-110 hover:shadow-xl focus:outline-none focus-visible:ring-indigo-300"><MessageCircle size={26}/></NavLink>}
+        {usuarioId && chatMontado && <aside aria-hidden={!chatVisible} inert={!chatVisible} className={`fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 sm:w-[420px] ${chatVisible ? 'translate-x-0' : 'translate-x-full'}`}><Chatbot onCerrar={() => setChatAbierto(false)}/></aside>}
+        {!chatVisible && <button type="button" onClick={alternarChat} aria-label="Abrir chatbot" title="Chatbot" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/40 ring-4 ring-white/80 transition hover:scale-110 hover:shadow-xl focus:outline-none focus-visible:ring-indigo-300"><MessageCircle size={26}/></button>}
       </>}/>
     </Routes>
     <AvisosGlobales/>
