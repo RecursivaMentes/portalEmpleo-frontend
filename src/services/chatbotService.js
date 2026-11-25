@@ -2,19 +2,15 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_CHATBOT_API_URL;
 
-const getHeaders = () => {
-    const accessToken = localStorage.getItem("accessToken");
-    return {
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
-        }
-    };
+//config para las cookies
+const config = {
+    withCredentials: true
 };
 
 export const crearChat = async (Tipo) => {
     const payload=Tipo?{Tipo}:{};
     try {
-        const response = await axios.post(`${API_URL}/api/chats`,payload,getHeaders());
+        const response = await axios.post(`${API_URL}/api/chats`,payload,config);
         return response.data;
     } catch (error) {
         console.log(error.response?.data ?? error.message);
@@ -25,7 +21,7 @@ export const crearChat = async (Tipo) => {
 
 export const enviarMensaje=async(idChat,Contenido)=>{
     try {
-        const response=await axios.post(`${API_URL}/api/chats/${idChat}/mensajes`,{Contenido},getHeaders());
+        const response=await axios.post(`${API_URL}/api/chats/${idChat}/mensajes`,{Contenido},config);
         return response.data;
     } catch (error) {
         console.log(error.response?.data ?? error.message);
@@ -36,7 +32,7 @@ export const enviarMensaje=async(idChat,Contenido)=>{
 
 export const listarChats=async()=>{
     try {
-        const response=await axios(`${API_URL}/api/chats`,getHeaders())
+        const response=await axios(`${API_URL}/api/chats`,config)
         return response.data;
     } catch (error) {
         console.log(error.response?.data ?? error.message);
@@ -47,7 +43,7 @@ export const listarChats=async()=>{
 
 export const obtenerMensajes=async(idChat)=>{
     try {
-        const response=await axios(`${API_URL}/api/chats/${idChat}/mensajes`,getHeaders())
+        const response=await axios(`${API_URL}/api/chats/${idChat}/mensajes`,config)
         return response.data;
     } catch (error) {
         console.log(error.response?.data ?? error.message);

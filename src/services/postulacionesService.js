@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { obtenerUsuarioIdActual } from './usuariosService';
 
-const api = axios.create({ baseURL: '/api/postulaciones' });
-const autorizacion = () => {
+const api = axios.create({
+  baseURL: '/api/postulaciones',
+  withCredentials: true,
+});
+
+const verificarSesion = () => {
   const usuarioId = obtenerUsuarioIdActual();
-  const token = localStorage.getItem('accessToken');
-  if (!usuarioId || !token) throw new Error('Iniciá sesión para gestionar tus postulaciones.');
-  return { headers: { Authorization: `Bearer ${token}` } };
+  if (!usuarioId) throw new Error('Iniciá sesión para gestionar tus postulaciones.');
 };
 
 function errorLegible(error) {
@@ -17,9 +19,11 @@ function errorLegible(error) {
   return new Error(dato?.message || dato?.mensaje || dato?.detail || dato?.title ||
     (error.response.status === 409 ? 'La operación no está disponible o ya fue realizada.' : 'Error de la API (HTTP ' + error.response.status + '). Verifica que el servicio de Postulaciones este ejecutandose y revisa la consola del backend.'));
 }
+
 async function ejecutar(metodo, ruta, datos, config = {}) {
   try {
-    const respuesta = await api.request({ method: metodo, url: ruta, data: datos, ...autorizacion(), ...config });
+    verificarSesion();
+    const respuesta = await api.request({ method: metodo, url: ruta, data: datos, ...config });
     return respuesta.data;
   } catch (error) { throw errorLegible(error); }
 }

@@ -14,7 +14,7 @@ import CambiarContrasena from './pages/CambiarContrasena';
 import RecuperarContrasena from './pages/RecuperarContrasena';
 import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
-import { cerrarSesionUsuario, obtenerUsuarioIdActual } from './services/usuariosService';
+import { cerrarSesionUsuario, obtenerUsuarioIdActual,obtenerDatosPersonales } from './services/usuariosService';
 
 const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
 const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-primary-700 hover:border-primary-200'}`;
@@ -75,12 +75,19 @@ export default function App() {
   const [chatMontado, setChatMontado] = useState(false);
   const [chatPeticion, setChatPeticion] = useState(null);
   const [usuarioId, setUsuarioId] = useState(() => obtenerUsuarioIdActual());
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
   const [modal, setModal] = useState({ abierto: false, motivo: '' });
   const pedirLogin = useCallback((motivo = 'Iniciá sesión para continuar.') => setModal({ abierto: true, motivo }), []);
   const cerrarModal = useCallback(() => setModal({ abierto: false, motivo: '' }), []);
 
   useEffect(() => {
     const actualizar = () => setUsuarioId(obtenerUsuarioIdActual());
+    obtenerDatosPersonales()
+    .catch(() => {})
+    .finally(() => {
+      actualizar();
+      setVerificandoSesion(false);
+    });
     window.addEventListener('auth-changed', actualizar);
     window.addEventListener('storage', actualizar);
     return () => { window.removeEventListener('auth-changed', actualizar); window.removeEventListener('storage', actualizar); };
@@ -111,8 +118,10 @@ export default function App() {
     e.preventDefault();
     pedirLogin(`Iniciá sesión para acceder a ${destino}.`);
   };
-  const acceso = (elemento) => usuarioId ? elemento : <Pendiente solicitarIngreso={pedirLogin}/>;
-
+  const acceso = (elemento) => {
+    if (verificandoSesion) return null; 
+    return usuarioId ? elemento : <Pendiente solicitarIngreso={pedirLogin}/>;
+  };
   return <>
     <Routes>
       <Route path="/iniciarSesion" element={<IniciarSesion/>}/>
