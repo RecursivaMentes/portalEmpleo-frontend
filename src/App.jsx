@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
-import { Briefcase, Sparkles, MessageCircle, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
+import { Briefcase, Sparkles, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
 import Empleos from './pages/Empleos';
 import Recomendaciones from './pages/Recomendaciones';
 import IniciarSesion from './pages/IniciarSesion';
@@ -73,6 +73,7 @@ export default function App() {
   const navigate = useNavigate();
   const [chatAbierto, setChatAbierto] = useState(false);
   const [chatMontado, setChatMontado] = useState(false);
+  const [chatPeticion, setChatPeticion] = useState(null);
   const [usuarioId, setUsuarioId] = useState(() => obtenerUsuarioIdActual());
   const [modal, setModal] = useState({ abierto: false, motivo: '' });
   const pedirLogin = useCallback((motivo = 'Iniciá sesión para continuar.') => setModal({ abierto: true, motivo }), []);
@@ -85,11 +86,17 @@ export default function App() {
     return () => { window.removeEventListener('auth-changed', actualizar); window.removeEventListener('storage', actualizar); };
   }, []);
 
-  const alternarChat = () => {
-    if (!usuarioId) { pedirLogin('Iniciá sesión para acceder a Chatbot.'); return; }
-    setChatMontado(true);
-    setChatAbierto(v => !v);
-  };
+  // Cualquier pantalla puede abrir el chat: window.dispatchEvent(new CustomEvent('abrir-chatbot', { detail: { mensaje } }))
+  useEffect(() => {
+    const abrir = (e) => {
+      if (!usuarioId) { pedirLogin('Iniciá sesión para acceder a Chatbot.'); return; }
+      setChatMontado(true);
+      setChatAbierto(true);
+      setChatPeticion({ id: Date.now(), mensaje: e.detail?.mensaje ?? '' });
+    };
+    window.addEventListener('abrir-chatbot', abrir);
+    return () => window.removeEventListener('abrir-chatbot', abrir);
+  }, [usuarioId, pedirLogin]);
   const chatVisible = chatAbierto && !!usuarioId;
   useEffect(() => {
     if (!chatVisible) return;
@@ -132,8 +139,7 @@ export default function App() {
           <Route path="" element={<Navigate to="/empleos" replace/>}/>
           <Route path="*" element={<Navigate to="/empleos" replace/>}/>
         </Routes></main>
-        {usuarioId && chatMontado && <aside aria-hidden={!chatVisible} inert={!chatVisible} className={`fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 sm:w-[420px] ${chatVisible ? 'translate-x-0' : 'translate-x-full'}`}><Chatbot onCerrar={() => setChatAbierto(false)}/></aside>}
-        {!chatVisible && <button type="button" onClick={alternarChat} aria-label="Abrir chatbot" title="Chatbot" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full borde-ia [--ia-fondo:var(--color-accent-600)] text-white transition hover:scale-110 focus:outline-none"><MessageCircle size={26}/></button>}
+        {usuarioId && chatMontado && <aside aria-hidden={!chatVisible} inert={!chatVisible} className={`fixed inset-y-0 right-0 z-50 w-full border-l border-slate-200 bg-white shadow-2xl transition-transform duration-300 sm:w-[420px] ${chatVisible ? 'translate-x-0' : 'translate-x-full'}`}><Chatbot onCerrar={() => setChatAbierto(false)} peticion={chatPeticion}/></aside>}
       </>}/>
     </Routes>
     <AvisosGlobales/>

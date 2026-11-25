@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye } from "lucide-react";
+import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye, MessageSquare } from "lucide-react";
 import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
 import { obtenerMensajeErrorCv, obtenerMensajeErrorDescargaCv } from "../services/cvErrors";
 
@@ -61,6 +61,19 @@ export default function Cvs() {
   useEffect(() => {
     Promise.resolve().then(() => cargarCvs());
   }, []);
+
+  // El chatbot puede editar un CV: al recibir su respuesta se vuelve a cargar la lista.
+  useEffect(() => {
+    const recargar = () => { cargarCvs(); };
+    window.addEventListener('chat-respondio', recargar);
+    return () => window.removeEventListener('chat-respondio', recargar);
+  }, []);
+
+  const handleModificarConChat = (cv) => {
+    window.dispatchEvent(new CustomEvent('abrir-chatbot', {
+      detail: { mensaje: `Quiero modificar mi CV "${cv.titulo}". ` },
+    }));
+  };
 
   useEffect(() => {
     return () => {
@@ -492,6 +505,17 @@ export default function Cvs() {
                             Descargar archivo original
                           </button>
                         )}
+
+                        {/* Modificar con el chatbot */}
+                        <button
+                          type="button"
+                          onClick={() => handleModificarConChat(cv)}
+                          className="borde-ia col-span-2 inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    text-violet-700 font-medium rounded-lg cursor-pointer text-sm"
+                        >
+                          <MessageSquare size={17} />
+                          Modificar con chatbot
+                        </button>
 
                         {/* Editar */}
                         <button

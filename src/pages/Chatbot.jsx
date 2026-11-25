@@ -4,7 +4,7 @@ import { listarChats, crearChat, obtenerMensajes, enviarMensaje } from '../servi
 
 const formatearFecha = (f) => new Date(f).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-const Chatbot=({ onCerrar })=> {
+const Chatbot=({ onCerrar, peticion })=> {
     const [chats, setChats] = useState([]);
     const [chatActivoId, setChatActivoId] = useState(null);
     const [mensajes, setMensajes] = useState([]);
@@ -13,6 +13,8 @@ const Chatbot=({ onCerrar })=> {
     const [panelAbierto, setPanelAbierto] = useState(false);
     const [error, setError] = useState("");
     const desplegarMensajesFin = useRef(null);
+    const inputRef = useRef(null);
+    const peticionAtendida = useRef(null);
 
     //lista de chats al iniciar
     useEffect(() => {
@@ -38,6 +40,24 @@ const Chatbot=({ onCerrar })=> {
     useEffect(() => {
         desplegarMensajesFin.current?.scrollIntoView({ behavior: 'smooth' });
     }, [mensajes]);
+
+    // Otra pantalla pidió abrir el chat con un mensaje de partida (ej. "Modificar con chatbot" en un CV):
+    // se crea una conversación nueva y el mensaje queda escrito para que la persona lo complete y lo envíe.
+    useEffect(() => {
+        if (!peticion || peticionAtendida.current === peticion.id) return;
+        peticionAtendida.current = peticion.id;
+        if (!peticion.mensaje) return;
+        // peticionAtendida evita crear dos chats cuando React ejecuta el efecto dos veces en desarrollo.
+        crearChat()
+            .then(nuevo => {
+                setChats(prev => [nuevo, ...prev]);
+                setChatActivoId(nuevo.id);
+                setNuevoMensaje(peticion.mensaje);
+                setPanelAbierto(false);
+                setTimeout(() => inputRef.current?.focus(), 350);
+            })
+            .catch(() => setError("No se pudo crear el chat"));
+    }, [peticion]);
 
     // 3. Crear un nuevo tema de conversación
     const handleCrearNuevoChat = async () => {
@@ -76,6 +96,7 @@ const Chatbot=({ onCerrar })=> {
                 resultado.mensajeUsuario,
                 resultado.respuesta,
             ]);
+            window.dispatchEvent(new Event('chat-respondio'));
         } catch (error) {
             console.error("Error al enviar el mensaje:", error);
             // Si la API falla no guarda nada: se quita el mensaje y se devuelve el texto al cuadro para reintentar.
@@ -151,6 +172,7 @@ const Chatbot=({ onCerrar })=> {
                             {error && <p role="alert" className="mx-auto mb-2 max-w-3xl rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
                             <form onSubmit={handleEnviar} className="mx-auto flex max-w-3xl items-center gap-2">
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={nuevoMensaje}
                                     onChange={(e) => setNuevoMensaje(e.target.value)}
