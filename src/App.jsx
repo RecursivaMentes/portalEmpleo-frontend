@@ -15,6 +15,7 @@ import RecuperarContrasena from './pages/RecuperarContrasena';
 import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual,obtenerDatosPersonales } from './services/usuariosService';
+import Notificaciones from './components/Notificaciones';
 
 const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
 const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-blue-700 hover:border-blue-200'}`;
@@ -112,7 +113,12 @@ export default function App() {
           <MenuPostulaciones proteger={navegarProtegido}/>
           <NavLink to="/chatbot" onClick={(e) => navegarProtegido(e, 'Chatbot')} className={claseEnlace}><Bot size={18} className="text-blue-500"/>Chatbot</NavLink>
           <NavLink to="/cvs" onClick={(e) => navegarProtegido(e, 'Mis CV')} className={claseEnlace}><FileText size={18}/>Mis CV</NavLink>
-          {usuarioId ? <MenuUsuario salir={salir}/> : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-blue-700`}><LogIn size={19}/>Iniciar sesión</button>}
+          {usuarioId ? 
+            <div className="ml-auto flex items-center gap-1">
+              <Notificaciones/>
+              <MenuUsuario salir={salir}/>
+            </div>
+            : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-blue-700`}><LogIn size={19}/>Iniciar sesión</button>}
         </nav></header>
         <main><Routes>
           <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
