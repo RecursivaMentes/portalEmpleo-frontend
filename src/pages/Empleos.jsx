@@ -172,10 +172,10 @@ export default function Empleos({ onSolicitarLogin }) {
                 return (
                   <article
                     key={empleo.id}
-                    className="group flex overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-primary-200 hover:shadow-lg"
+                    className="group flex rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:border-primary-200 hover:shadow-lg"
                   >
                     {/* Barra lateral de acento */}
-                    <div className="w-1.5 shrink-0 bg-primary-500 transition-colors group-hover:bg-accent-600" aria-hidden="true" />
+                    <div className="w-1.5 shrink-0 rounded-l-2xl bg-primary-500 transition-colors group-hover:bg-accent-600" aria-hidden="true" />
 
                     <div className="flex min-w-0 flex-1 flex-col md:flex-row">
                       {/* Columna principal */}
