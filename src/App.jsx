@@ -16,6 +16,7 @@ import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual,obtenerDatosPersonales } from './services/usuariosService';
 import Notificaciones from './components/Notificaciones';
+import ActividadPostulacionesIA from './components/ActividadPostulacionesIA';
 
 const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
 const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-primary-700 hover:border-primary-200'}`;
@@ -136,9 +137,10 @@ export default function App() {
           <MenuPostulaciones proteger={navegarProtegido}/>
           <NavLink to="/cvs" onClick={(e) => navegarProtegido(e, 'Mis CV')} className={claseEnlace}><FileText size={18}/>Mis CV</NavLink>
           {usuarioId
-            ? <div className="ml-auto flex items-center gap-1"><Notificaciones/><MenuUsuario salir={salir}/></div>
+            ? <div className="ml-auto flex items-center gap-1">{import.meta.env.VITE_NOTIFICACIONES_HABILITADAS === 'true' && <Notificaciones/>}<MenuUsuario salir={salir}/></div>
             : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-primary-700`}><LogIn size={19}/>Iniciar sesión</button>}
         </nav></header>
+        {usuarioId && <ActividadPostulacionesIA key={usuarioId}/>}
         <main><Routes>
           <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
           <Route path="recomendaciones" element={acceso(<Recomendaciones usuarioId={usuarioId} onSolicitarLogin={pedirLogin}/>)}/>

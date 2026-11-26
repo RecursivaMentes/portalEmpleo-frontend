@@ -39,6 +39,7 @@ export const agregarPendiente = (empleoId) => ejecutar('post', '/pendientes', { 
 export const quitarPendiente = (empleoId) => ejecutar('delete', `/pendientes/${encodeURIComponent(empleoId)}`);
 export const solicitarPostulacionIA = (empleoId) => ejecutar('post', '/preparaciones/solicitar-con-ia', { empleoId });
 export const preparaciones = () => ejecutar('get', '/preparaciones/me');
+export const preparacionActiva = () => ejecutar('get', '/preparaciones/activa/me');
 export const obtenerPreparacion = (id) => ejecutar('get', `/preparaciones/${encodeURIComponent(id)}`);
 export const compararCvIA = (id) => ejecutar('get', `/preparaciones/${encodeURIComponent(id)}/comparacion-cv-ia`);
 export const aprobarCvIA = (id, versionEdicion) => ejecutar('post', `/preparaciones/${encodeURIComponent(id)}/aprobar-cv-ia`, { versionEdicion });

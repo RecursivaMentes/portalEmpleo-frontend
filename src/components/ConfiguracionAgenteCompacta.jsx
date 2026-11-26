@@ -18,8 +18,7 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
 
   useEffect(() => {
     let activo = true;
-    const token = localStorage.getItem('accessToken');
-    axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(url, { withCredentials: true })
       .then(({ data }) => {
         if (!activo) return;
         setDatos(data); setOriginal(JSON.stringify(data));
@@ -45,8 +44,7 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
     }
     setGuardando(true); setError('');
     try {
-      const token = localStorage.getItem('accessToken');
-      const { data } = await axios.put(url, datos, { headers: { Authorization: `Bearer ${token}` } });
+        const { data } = await axios.put(url, datos, { withCredentials: true });
       setDatos(data); setOriginal(JSON.stringify(data));
       window.dispatchEvent(new CustomEvent('recursiva:aviso', { detail: { mensaje: 'Configuración de postulaciones guardada.' } }));
       await alGuardar?.();

@@ -17,8 +17,7 @@ export default function ConfiguracionPostulaciones() {
   const [exito, setExito] = useState('');
   useEffect(() => {
     let activo = true;
-    const token = localStorage.getItem('accessToken');
-    axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(url, { withCredentials: true })
       .then(({ data }) => { if (activo) { setDatos(data); setOriginal(JSON.stringify(data)); } })
       .catch((e) => { if (activo) setError(errorLegible(e)); })
       .finally(() => { if (activo) setCargando(false); });
@@ -31,8 +30,7 @@ export default function ConfiguracionPostulaciones() {
     if (datos.limiteDiario < 1 || datos.limiteDiario > 10) { setError('El límite diario debe estar entre 1 y 10.'); return; }
     setGuardando(true); setError(''); setExito('');
     try {
-      const token = localStorage.getItem('accessToken');
-      const { data } = await axios.put(url, datos, { headers: { Authorization: `Bearer ${token}` } });
+        const { data } = await axios.put(url, datos, { withCredentials: true });
       setDatos(data); setOriginal(JSON.stringify(data)); setExito('Configuración guardada correctamente.');
       window.dispatchEvent(new CustomEvent('recursiva:aviso', { detail: { mensaje: 'Configuración guardada correctamente.' } }));
     } catch (e) { setError(errorLegible(e)); }
