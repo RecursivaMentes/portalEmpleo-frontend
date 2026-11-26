@@ -105,6 +105,7 @@ export default function App() {
       <Route path="/iniciarSesion" element={<IniciarSesion/>}/>
       <Route path="/registrarse" element={<Registrarse/>}/>
       <Route path="/recuperar-clave" element={<RecuperarContrasena/>}/>
+      <Route path="/restablecer-contrasena" element={<RecuperarContrasena/>}/>
       <Route path="/*" element={<>
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40"><nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
           <NavLink to="/empleos" className={claseEnlace}><Briefcase size={18} className="text-slate-400"/>Buscar empleos</NavLink>
