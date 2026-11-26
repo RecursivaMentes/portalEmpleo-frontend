@@ -28,7 +28,7 @@ export default function SearchBar({
   }
 
   const campo =
-    "w-full min-w-0 h-11 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-400";
+    "w-full min-w-0 h-11 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 placeholder:text-slate-400";
 
   return (
     <form onSubmit={enviar} className="space-y-3">
@@ -111,7 +111,7 @@ export default function SearchBar({
 
         <button
           type="submit"
-          className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition cursor-pointer"
         >
           <span>🔎</span>
           Buscar empleos

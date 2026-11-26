@@ -7,12 +7,12 @@ let usuarioIdEnMemoria = null;
 export const obtenerUsuarioIdActual = () => usuarioIdEnMemoria;
 
 // Todas las peticiones con `api` incluirán las cookies automáticamente
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
-function interpretarError(error, mensaje) {
+export function interpretarError(error, mensaje) {
   if (!error.response) {
     return new Error('No se pudo conectar con el servidor. Revisá la conexión e intentá nuevamente.');
   }
@@ -69,6 +69,8 @@ export const registrarse = async (datos) => {
 export const obtenerDatosPersonales = async () => {
   try {
     const { data } = await api.get('/api/auth/profile');
+    console.log(JSON.stringify(data));
+    
     usuarioIdEnMemoria = data?.id ?? null;
     return data;
   } catch (error) {

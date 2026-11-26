@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, LoaderCircle, Save, Settings2 } from 'lucide-re
 const url = '/api/postulaciones/configuracion/me';
 const modos = [['Desactivada', 'Desactivada'], ['Asistida', 'Asistida'], ['Automatica', 'Automática']];
 const ordenes = [['Prioridad', 'Prioridad'], ['Compatibilidad', 'Compatibilidad'], ['FechaCierre', 'Fecha de cierre'], ['Antiguos', 'Más antiguas'], ['Recientes', 'Más recientes']];
-const campo = 'mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100';
+const campo = 'mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100';
 const errorApi = (err) => err.response?.data?.message || err.response?.data?.mensaje || 'No se pudo completar la operación. Revisá la conexión con las APIs.';
 
 export default function ConfiguracionAgenteCompacta({ alGuardar }) {
@@ -56,7 +56,7 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
 
   return <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <button type="button" aria-expanded={expandida} aria-controls="configuracion-agente-contenido" onClick={() => setExpandida((v) => !v)} className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50">
-      <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-900"><Settings2 size={18} className="shrink-0 text-blue-600" />Configuración de postulaciones <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{cargando ? 'Cargando...' : datos?.modo === 'Automatica' ? 'Automática' : datos?.modo || 'No disponible'}</span></span>
+      <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-900"><Settings2 size={18} className="shrink-0 text-primary-600" />Configuración de postulaciones <span className="rounded-md bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">{cargando ? 'Cargando...' : datos?.modo === 'Automatica' ? 'Automática' : datos?.modo || 'No disponible'}</span></span>
       {expandida ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
     </button>
     {expandida && <div id="configuracion-agente-contenido" className="border-t border-slate-200 px-4 py-4">
@@ -70,7 +70,7 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
         </div>
         <p className="text-xs text-slate-500">En modo asistido las propuestas requieren tu aprobación. En automático pueden enviarse según la configuración y las validaciones del backend.</p>
         {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-        <div className="flex justify-end"><button type="submit" disabled={guardando || JSON.stringify(datos) === original} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">{guardando ? <LoaderCircle size={16} className="animate-spin"/> : <Save size={16}/>}Guardar cambios</button></div>
+        <div className="flex justify-end"><button type="submit" disabled={guardando || JSON.stringify(datos) === original} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">{guardando ? <LoaderCircle size={16} className="animate-spin"/> : <Save size={16}/>}Guardar cambios</button></div>
       </form>}
     </div>}
   </section>;

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConfirmacionAccion from '../components/ConfirmacionAccion';
-import { ChevronDown, ChevronUp, LoaderCircle, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp, LoaderCircle, MessageSquare, Plus, Trash2, Save, RotateCcw } from 'lucide-react';
 import { obtenerPerfilLaboral, guardarPerfilLaboral } from '../services/perfilLaboralService';
 
 const vacio = () => ({ resumen: '', experiencias: [], sinExperiencia: true, formacion: [], habilidades: [], idiomas: [] });
@@ -13,9 +13,9 @@ const nivelesEducativos = ['Primaria', 'Secundaria', 'Terciaria', 'Universitaria
 const estadosFormacion = [['EnCurso', 'En curso'], ['Finalizado', 'Finalizado'], ['Incompleto', 'Incompleto']];
 const nivelesHabilidad = [['', 'Sin especificar'], ['Basico', 'Básico'], ['Intermedio', 'Intermedio'], ['Avanzado', 'Avanzado']];
 const nivelesIdioma = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Nativo'];
-const campoClase = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+const campoClase = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100';
 const botonSecundario = 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 cursor-pointer';
-const botonPrincipal = 'inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 cursor-pointer';
+const botonPrincipal = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60 cursor-pointer';
 const formatoFecha = (valor) => typeof valor === 'string' ? valor.slice(0, 10) : '';
 function normalizar(perfil) {
   return {
@@ -124,6 +124,22 @@ export default function PerfilLaboral() {
   const [abiertas, setAbiertas] = useState({ resumen: true, experiencias: true, formacion: false, habilidades: false, idiomas: false });
   const modificado = useMemo(() => original !== null && JSON.stringify(datos) !== JSON.stringify(original), [datos, original]);
 
+  // El chatbot puede guardar datos del perfil: al responder se vuelve a consultar, salvo que haya cambios sin guardar.
+  const modificadoRef = useRef(false);
+  useEffect(() => { modificadoRef.current = modificado; }, [modificado]);
+  useEffect(() => {
+    const alResponderChat = () => {
+      if (modificadoRef.current) {
+        window.dispatchEvent(new CustomEvent('recursiva:aviso', { detail: { mensaje: 'El chatbot actualizó tu perfil. Guardá o descartá tus cambios para ver los datos nuevos.' } }));
+        return;
+      }
+      setRecarga((n) => n + 1);
+    };
+    window.addEventListener('chat-respondio', alResponderChat);
+    return () => window.removeEventListener('chat-respondio', alResponderChat);
+  }, []);
+  const completarConChat = () => window.dispatchEvent(new CustomEvent('abrir-chatbot', { detail: { mensaje: 'Quiero completar mi perfil laboral. ' } }));
+
   useEffect(() => {
     let activo = true;
     obtenerPerfilLaboral().then((perfil) => {
@@ -203,7 +219,7 @@ export default function PerfilLaboral() {
   const vacioError = error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error} {!original && <button type="button" onClick={() => { setCargando(true); setError(''); setRecarga((n) => n + 1); }} className="ml-2 underline cursor-pointer">Volver a consultar</button>}</div>;
 
   return <main className="min-h-screen bg-slate-50 pb-20">
-    <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white"><div className="mx-auto max-w-6xl px-5 py-10"><span className="inline-flex rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm">Mi cuenta</span><h1 className="mt-4 text-3xl font-extrabold">Perfil laboral</h1><p className="mt-2 text-blue-100">Completá tus datos profesionales para mejorar tus oportunidades laborales.</p></div></section>
+    <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white"><div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-end sm:justify-between"><div><span className="inline-flex rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm">Mi cuenta</span><h1 className="mt-4 text-3xl font-extrabold">Perfil laboral</h1><p className="mt-2 text-primary-100">Completá tus datos profesionales para mejorar tus oportunidades laborales.</p></div><button type="button" onClick={completarConChat} className="borde-ia inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-violet-700"><MessageSquare size={17}/>Completar con chatbot</button></div></section>
     <div className="mx-auto max-w-4xl space-y-5 px-5 pt-8">
       {cargando ? <div aria-label="Cargando perfil laboral" className="space-y-4 animate-pulse">{[1, 2, 3, 4, 5].map((n) => <div key={n} className="h-20 rounded-2xl border border-slate-200 bg-white p-5"><div className="h-5 w-48 rounded-lg bg-slate-200" /></div>)}</div> : <>
         {vacioError}
