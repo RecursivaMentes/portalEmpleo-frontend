@@ -6,6 +6,7 @@ import {
   avisar, misPostulaciones, pendientes, preparaciones, quitarPendiente,
   cancelarPreparacion, obtenerPreparacion, proponerCambios, aceptarCambios, descartarCambios,
   modificarConIA, enviarPreparacion, compararCvIA, aprobarCvIA, obtenerCvEnviado,
+  ofertasDescartadas, restaurarOferta,
 } from '../services/postulacionesService';
 import AccionesPostulacion from '../components/AccionesPostulacion';
 import ConfirmacionAccion from '../components/ConfirmacionAccion';
@@ -25,6 +26,48 @@ const primario = 'rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold te
 
 function Esqueleto() { return <div className="space-y-4 animate-pulse">{[1, 2, 3].map((x) => <div key={x} className="h-32 rounded-2xl bg-slate-200"/>)}</div>; }
 function ErrorConsulta({ mensaje, recargar }) { return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700"><p>{mensaje}</p><button onClick={recargar} className="mt-3 font-semibold underline cursor-pointer">Reintentar</button></div>; }
+
+function OfertasDescartadas() {
+  const [ids, setIds] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [ocupada, setOcupada] = useState(null);
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    let activo = true;
+    let consulta = 0;
+    const cargar = () => {
+      const numero = ++consulta;
+      Promise.resolve().then(() => {
+        if (!activo || numero !== consulta) return;
+        setCargando(true); setError('');
+        return ofertasDescartadas().then((respuesta) => {
+          if (activo && numero === consulta) setIds(Array.isArray(respuesta) ? respuesta : []);
+        }).catch((err) => { if (activo && numero === consulta) setError(err.message); })
+          .finally(() => { if (activo && numero === consulta) setCargando(false); });
+      });
+    };
+    cargar();
+    window.addEventListener('recursiva:ofertas-actualizadas', cargar);
+    return () => { activo = false; window.removeEventListener('recursiva:ofertas-actualizadas', cargar); };
+  }, [revision]);
+  async function restaurar(id) {
+    if (ocupada) return;
+    setOcupada(id);
+    try {
+      await restaurarOferta(id);
+      setIds((actual) => actual.filter((x) => x !== id));
+      avisar('La oferta vuelve a estar disponible para el agente.');
+    } catch (err) { avisar(err.message, 'error'); }
+    finally { setOcupada(null); }
+  }
+  return <details className="mb-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+    <summary className="cursor-pointer font-semibold text-slate-800">Ofertas excluidas del agente {!cargando && !error && `(${ids.length})`}</summary>
+    <p className="mt-2 text-xs text-slate-500">Estas ofertas no serán seleccionadas automáticamente. Volver a incluirlas no las agrega a pendientes.</p>
+    {cargando ? <p role="status" className="mt-3 flex items-center gap-2 text-slate-500"><LoaderCircle size={16} className="animate-spin"/>Consultando ofertas...</p> : error ? <ErrorConsulta mensaje={error} recargar={() => setRevision((x) => x + 1)}/> : ids.length === 0 ? <p className="mt-3 text-slate-500">No hay ofertas excluidas.</p> :
+      <ul className="mt-3 divide-y divide-slate-100">{ids.map((id) => <li key={id} className="flex flex-wrap items-center justify-between gap-2 py-3"><div><p className="font-medium text-slate-800"><TituloPostulacion empleoId={id}/></p><p className="text-xs text-slate-500">Referencia: {id.slice(0, 8)}</p></div><button type="button" disabled={!!ocupada} onClick={() => restaurar(id)} className={btn}>{ocupada === id ? 'Restaurando...' : 'Volver a incluir'}</button></li>)}</ul>}
+  </details>;
+}
 
 function HistorialPostulacion({ item }) {
   const eventos = Array.isArray(item.historial) ? item.historial : [];
@@ -137,6 +180,12 @@ export default function Postulaciones() {
     finally { setCargando(false); }
   }, [pestaña]);
   useEffect(() => { Promise.resolve().then(cargar); }, [cargar]);
+  useEffect(() => {
+    if (pestaña !== 'pendientes') return;
+    const actualizar = (evento) => { if (evento.detail?.accion === 'descartar') cargar(); };
+    window.addEventListener('recursiva:ofertas-actualizadas', actualizar);
+    return () => window.removeEventListener('recursiva:ofertas-actualizadas', actualizar);
+  }, [cargar, pestaña]);
   async function quitar(id) {
     setPendienteQuitar(id);
   }
@@ -154,10 +203,11 @@ export default function Postulaciones() {
   const titulos = { pendientes: 'Pendientes de postulación', aprobaciones: 'Requieren tu aprobación', realizadas: 'Postulaciones realizadas' };
   const visibles = pestaña === 'aprobaciones' ? datos.filter((x) => !['Enviada', 'Cancelada', 'Fallida'].includes(x.estado)) : datos;
   return <main className="min-h-screen bg-slate-50 pb-20"><section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white"><div className="mx-auto max-w-6xl px-5 py-10"><h1 className="text-3xl font-extrabold">{titulos[pestaña]}</h1><p className="mt-2 text-primary-100">Gestioná tus postulaciones y revisá su evolución.</p></div></section>
-    <div className="mx-auto max-w-6xl px-5 py-8">{pestaña === 'pendientes' && <ConfiguracionAgenteCompacta alGuardar={cargar}/>}<div className="mb-5 flex justify-end"><button onClick={cargar} className={`${btn} flex items-center gap-2`} disabled={cargando}><RefreshCw size={16}/>Actualizar</button></div>
+    <div className="mx-auto max-w-6xl px-5 py-8">{pestaña === 'pendientes' && <><ConfiguracionAgenteCompacta alGuardar={cargar}/><OfertasDescartadas/></>}<div className="mb-5 flex justify-end"><button onClick={cargar} className={`${btn} flex items-center gap-2`} disabled={cargando}><RefreshCw size={16}/>Actualizar</button></div>
       {cargando ? <Esqueleto/> : error ? <ErrorConsulta mensaje={error} recargar={cargar}/> : visibles.length === 0 ? <div className={`${tarjeta} text-center text-slate-600`}>No hay elementos en esta sección. <Link to="/empleos" className="font-semibold text-primary-700 underline">Buscar empleos</Link></div> : <div className="space-y-4">
         {visibles.map((item) => <article key={item.id || item.empleoId} className={tarjeta}>
           <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-bold text-slate-900">{item.titulo || <TituloPostulacion empleoId={item.empleoId}/>}</h2><p className="mt-1 text-sm text-slate-500">{pestaña === 'pendientes' ? `Guardada: ${fecha(item.fechaAgregado)}` : pestaña === 'realizadas' ? `Enviada: ${fecha(item.fechaPostulacion)}` : `Preparación: ${descripcionEstado(item.estado)}`}</p></div>
+            {pestaña !== 'pendientes' && item.fuenteOferta && <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">Seleccionada desde {item.fuenteOferta === 'Pendientes' ? 'pendientes' : item.fuenteOferta === 'Recomendaciones' ? 'recomendaciones' : item.fuenteOferta}</span>}
             {pestaña === 'pendientes' && <div className="text-sm"><p>Prioridad: <strong>{item.prioridad ?? 'No calculada'}</strong></p><p>Compatibilidad: <strong>{item.compatibilidad == null ? 'No calculada' : `${item.compatibilidad}%`}</strong></p><p>Cierre: {fecha(item.fechaCierre)}</p></div>}
             {pestaña === 'realizadas' && <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">{({ Pendiente: 'Enviada Â· pendiente de revisión', EnRevision: 'En revisión', Entrevista: 'Entrevista', Aceptada: 'Aceptada', Rechazada: 'Rechazada', Retirada: 'Retirada' })[item.estado] || item.estado || 'Enviada'}</span>}
           </div>
@@ -168,7 +218,7 @@ export default function Postulaciones() {
           {pestaña === 'realizadas' && <div className="mt-4"><button onClick={() => descargar(item.id)} className={btn}>Descargar CV enviado</button><AccionesSeguimiento item={item} onActualizar={cargar}/><HistorialPostulacion item={item}/>{item.textoPresentacion && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold">Texto de presentación enviado</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{item.textoPresentacion}</p></details>}</div>}
         </article>)}
       </div>}
-      <ConfirmacionAccion abierto={!!pendienteQuitar} titulo="Quitar de pendientes" mensaje="¿Querés quitar esta oferta de tus postulaciones pendientes? Todavía no se envió ninguna postulación." confirmar="Quitar oferta" peligro ocupado={!!quitando} onConfirmar={() => confirmarQuitar(pendienteQuitar)} onCancelar={() => setPendienteQuitar(null)}/>
+      <ConfirmacionAccion abierto={!!pendienteQuitar} titulo="Quitar de pendientes" mensaje="¿Querés quitar esta oferta de tus pendientes? El agente todavía podrá seleccionarla desde recomendaciones si cumple tus preferencias. Para excluirla, usá «No me interesa»." confirmar="Quitar oferta" peligro ocupado={!!quitando} onConfirmar={() => confirmarQuitar(pendienteQuitar)} onCancelar={() => setPendienteQuitar(null)}/>
       {detalle && <DetalleOferta empleo={detalle} onCerrar={() => setDetalle(null)}/>}
 </div>
   </main>;

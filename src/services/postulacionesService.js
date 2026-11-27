@@ -35,8 +35,18 @@ export const postularManualmente = (empleoId, cvId, textoPresentacion) => ejecut
   usuarioId: obtenerUsuarioIdActual(), empleoId, cvId, textoPresentacion: textoPresentacion.trim() || null,
 });
 export const pendientes = () => ejecutar('get', '/pendientes/me');
-export const agregarPendiente = (empleoId) => ejecutar('post', '/pendientes', { empleoId });
-export const quitarPendiente = (empleoId) => ejecutar('delete', `/pendientes/${encodeURIComponent(empleoId)}`);
+export const agregarPendiente = (empleoId) => actualizarOferta('post', '/pendientes', { empleoId }, 'guardar');
+export const quitarPendiente = (empleoId) => actualizarOferta('delete', `/pendientes/${encodeURIComponent(empleoId)}`, undefined, 'quitar');
+export const ofertasDescartadas = () => ejecutar('get', '/descartadas/me');
+export const descartarOferta = (empleoId) => actualizarOferta('put', `/descartadas/${encodeURIComponent(empleoId)}`, undefined, 'descartar');
+export const restaurarOferta = (empleoId) => actualizarOferta('delete', `/descartadas/${encodeURIComponent(empleoId)}`, undefined, 'restaurar');
+
+async function actualizarOferta(metodo, ruta, datos, accion) {
+  const resultado = await ejecutar(metodo, ruta, datos);
+  limpiarCacheOfertas();
+  window.dispatchEvent(new CustomEvent('recursiva:ofertas-actualizadas', { detail: { accion } }));
+  return resultado;
+}
 export const solicitarPostulacionIA = (empleoId) => ejecutar('post', '/preparaciones/solicitar-con-ia', { empleoId });
 export const preparaciones = () => ejecutar('get', '/preparaciones/me');
 export const preparacionActiva = () => ejecutar('get', '/preparaciones/activa/me');
@@ -56,13 +66,18 @@ export function avisar(mensaje, tipo = 'exito') {
 
 let cacheOfertas = null;
 let cacheHasta = 0;
-export function limpiarCacheOfertas() { cacheOfertas = null; cacheHasta = 0; }
+let cacheUsuario = null;
+export function limpiarCacheOfertas() { cacheOfertas = null; cacheHasta = 0; cacheUsuario = null; }
 export function estadoOfertas() {
-  if (!cacheOfertas || Date.now() > cacheHasta) {
+  const usuarioId = obtenerUsuarioIdActual();
+  if (!cacheOfertas || usuarioId !== cacheUsuario || Date.now() > cacheHasta) {
+    cacheUsuario = usuarioId;
     cacheHasta = Date.now() + 3000;
-    cacheOfertas = Promise.allSettled([misPostulaciones(), pendientes()]).then(([r, p]) => ({
+    cacheOfertas = Promise.allSettled([misPostulaciones(), pendientes(), ofertasDescartadas()]).then(([r, p, d]) => ({
       realizadas: r.status === 'fulfilled' && Array.isArray(r.value) ? r.value.filter((p) => p.estado !== 'Retirada' && p.estado !== 5) : [],
       guardadas: p.status === 'fulfilled' && Array.isArray(p.value) ? p.value : [],
+      descartadas: d.status === 'fulfilled' && Array.isArray(d.value) ? d.value : [],
+      descartesVerificados: d.status === 'fulfilled' && Array.isArray(d.value),
       completo: r.status === 'fulfilled' && p.status === 'fulfilled',
     }));
   }

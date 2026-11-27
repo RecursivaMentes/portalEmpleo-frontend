@@ -66,7 +66,12 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
           <label className="text-xs font-semibold text-slate-700">Límite diario (1–10)<input type="number" min="1" max="10" value={datos.limiteDiario} onChange={(e) => cambiar('limiteDiario', Number(e.target.value))} className={campo}/></label>
           <label className="text-xs font-semibold text-slate-700">Orden de pendientes<select value={datos.ordenPendientes || 'Prioridad'} onChange={(e) => cambiar('ordenPendientes', e.target.value)} className={campo}>{ordenes.map(([v,t]) => <option key={v} value={v}>{t}</option>)}</select></label>
         </div>
-        <p className="text-xs text-slate-500">En modo asistido las propuestas requieren tu aprobación. En automático pueden enviarse según la configuración y las validaciones del backend.</p>
+        <p className="text-xs text-slate-500">En modo asistido las propuestas requieren tu aprobación. En automático pueden enviarse respetando los límites y las aprobaciones de CV que correspondan.</p>
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <p><strong className="text-slate-800">1. Pendientes:</strong> primero procesa las ofertas elegibles según el orden elegido.</p>
+          <p className="mt-1"><strong className="text-slate-800">2. Recomendaciones:</strong> si no quedan pendientes elegibles, busca ofertas compatibles con tus preferencias.</p>
+          <p className="mt-1">Respeta el límite diario, la compatibilidad mínima y las exclusiones. «No me interesa» impide que el agente vuelva a seleccionar esa oferta.</p>
+        </div>
         {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <div className="flex justify-end"><button type="submit" disabled={guardando || JSON.stringify(datos) === original} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">{guardando ? <LoaderCircle size={16} className="animate-spin"/> : <Save size={16}/>}Guardar cambios</button></div>
       </form>}
