@@ -16,6 +16,7 @@ function errorLegible(error) {
   if (error.response.status === 401) return new Error('Tu sesión venció. Volvé a iniciar sesión.');
   if (error.response.status === 403) return new Error('No tenés permiso para realizar esta operación.');
   const dato = error.response.data;
+  if (error.response.status === 503) return new Error(dato?.message || dato?.mensaje || dato?.detail || 'El servicio de postulaciones con IA no está disponible en este momento. Volvé a intentarlo.');
   return new Error(dato?.message || dato?.mensaje || dato?.detail || dato?.title ||
     (error.response.status === 409 ? 'La operación no está disponible o ya fue realizada.' : 'Error de la API (HTTP ' + error.response.status + '). Verifica que el servicio de Postulaciones este ejecutandose y revisa la consola del backend.'));
 }
