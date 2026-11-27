@@ -165,6 +165,7 @@ export default function Postulaciones() {
   const { seccion } = useParams();
   const pestaña = ['pendientes', 'aprobaciones', 'realizadas'].includes(seccion) ? seccion : 'pendientes';
   const [datos, setDatos] = useState([]);
+  const [paginas, setPaginas] = useState({});
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [seleccion, setSeleccion] = useState(null);
@@ -175,7 +176,13 @@ export default function Postulaciones() {
     setCargando(true); setError('');
     try {
       const respuesta = await ({ pendientes, aprobaciones: preparaciones, realizadas: misPostulaciones }[pestaña])();
-      setDatos(Array.isArray(respuesta) ? respuesta : []);
+      const lista = Array.isArray(respuesta) ? respuesta : [];
+      setDatos(lista);
+      const cantidad = pestaña === 'aprobaciones'
+        ? lista.filter((x) => !['Enviada', 'Cancelada', 'Fallida'].includes(x.estado)).length
+        : lista.length;
+      const maximo = Math.max(1, Math.ceil(cantidad / 16));
+      setPaginas((actual) => ({ ...actual, [pestaña]: Math.min(actual[pestaña] ?? 1, maximo) }));
     } catch (err) { setError(err.message); setDatos([]); }
     finally { setCargando(false); }
   }, [pestaña]);
@@ -201,7 +208,12 @@ export default function Postulaciones() {
     catch (err) { avisar(err.message, 'error'); }
   }
   const titulos = { pendientes: 'Pendientes de postulación', aprobaciones: 'Requieren tu aprobación', realizadas: 'Postulaciones realizadas' };
-  const visibles = pestaña === 'aprobaciones' ? datos.filter((x) => !['Enviada', 'Cancelada', 'Fallida'].includes(x.estado)) : datos;
+  // Conservar los filtros de cada sección y paginar después de aplicarlos.
+  const filtradas = pestaña === 'aprobaciones' ? datos.filter((x) => !['Enviada', 'Cancelada', 'Fallida'].includes(x.estado)) : datos;
+  const porPagina = 16;
+  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / porPagina));
+  const paginaActual = Math.min(paginas[pestaña] ?? 1, totalPaginas);
+  const visibles = filtradas.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
   return <main className="min-h-screen bg-slate-50 pb-20"><section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white"><div className="mx-auto max-w-6xl px-5 py-10"><h1 className="text-3xl font-extrabold">{titulos[pestaña]}</h1><p className="mt-2 text-primary-100">Gestioná tus postulaciones y revisá su evolución.</p></div></section>
     <div className="mx-auto max-w-6xl px-5 py-8">{pestaña === 'pendientes' && <><ConfiguracionAgenteCompacta alGuardar={cargar}/><OfertasDescartadas/></>}<div className="mb-5 flex justify-end"><button onClick={cargar} className={`${btn} flex items-center gap-2`} disabled={cargando}><RefreshCw size={16}/>Actualizar</button></div>
       {cargando ? <Esqueleto/> : error ? <ErrorConsulta mensaje={error} recargar={cargar}/> : visibles.length === 0 ? <div className={`${tarjeta} text-center text-slate-600`}>No hay elementos en esta sección. <Link to="/empleos" className="font-semibold text-primary-700 underline">Buscar empleos</Link></div> : <div className="space-y-4">
@@ -218,6 +230,13 @@ export default function Postulaciones() {
           {pestaña === 'realizadas' && <div className="mt-4"><button onClick={() => descargar(item.id)} className={btn}>Descargar CV enviado</button><AccionesSeguimiento item={item} onActualizar={cargar}/><HistorialPostulacion item={item}/>{item.textoPresentacion && <details className="mt-3 text-sm"><summary className="cursor-pointer font-semibold">Texto de presentación enviado</summary><p className="mt-2 whitespace-pre-wrap text-slate-600">{item.textoPresentacion}</p></details>}</div>}
         </article>)}
       </div>}
+      {!cargando && !error && totalPaginas > 1 && (
+        <nav aria-label={`Paginación de ${titulos[pestaña]}`} className="mt-4 flex items-center justify-center gap-3 text-sm">
+          <button type="button" disabled={paginaActual === 1} onClick={() => { setSeleccion(null); setPaginas((actual) => ({ ...actual, [pestaña]: paginaActual - 1 })); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">Anterior</button>
+          <span className="text-slate-600" aria-live="polite">Página {paginaActual} de {totalPaginas}</span>
+          <button type="button" disabled={paginaActual === totalPaginas} onClick={() => { setSeleccion(null); setPaginas((actual) => ({ ...actual, [pestaña]: paginaActual + 1 })); }} className="rounded-lg bg-primary-600 px-3 py-2 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">Siguiente</button>
+        </nav>
+      )}
       <ConfirmacionAccion abierto={!!pendienteQuitar} titulo="Quitar de pendientes" mensaje="¿Querés quitar esta oferta de tus pendientes? El agente todavía podrá seleccionarla desde recomendaciones si cumple tus preferencias. Para excluirla, usá «No me interesa»." confirmar="Quitar oferta" peligro ocupado={!!quitando} onConfirmar={() => confirmarQuitar(pendienteQuitar)} onCancelar={() => setPendienteQuitar(null)}/>
       {detalle && <DetalleOferta empleo={detalle} onCerrar={() => setDetalle(null)}/>}
 </div>
