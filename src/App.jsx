@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
-import { Briefcase, Sparkles, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
+import { Briefcase, Sparkles, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn, Lock } from 'lucide-react';
 import Empleos from './pages/Empleos';
 import Recomendaciones from './pages/Recomendaciones';
 import IniciarSesion from './pages/IniciarSesion';
@@ -35,7 +35,7 @@ function MenuUsuario({ salir }) {
   const opciones = [
     ['/perfil/datos', 'Datos personales', User],
     ['/perfil/laboral', 'Perfil laboral', BriefcaseBusiness],
-    ['/perfil/seguridad', 'Cambiar contraseña', User],
+    ['/perfil/seguridad', 'Cambiar contraseña', Lock],
     ['/cvs', 'Mis CV', FileText],
   ];
   return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} >
@@ -114,7 +114,7 @@ export default function App() {
     return () => document.removeEventListener('keydown', escapar);
   }, [chatVisible]);
 
-  const salir = () => { setChatAbierto(false); setChatMontado(false); cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
+  const salir = async () => { setChatAbierto(false); setChatMontado(false); await cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
   const navegarProtegido = (e, destino) => {
     if (usuarioId) return;
     e.preventDefault();
