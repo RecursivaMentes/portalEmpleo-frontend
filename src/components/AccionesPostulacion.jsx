@@ -72,21 +72,12 @@ export default function AccionesPostulacion({ empleo, onSolicitarLogin }) {
   }
 
   if (!empleoId) return null;
-<<<<<<< HEAD
-  return <div className="mt-4 space-y-2">
-    {postulado ? <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Ya te postulaste</p> : <div className="relative" ref={ref}>
-      <button type="button" disabled={guardando || preparandoIA} aria-expanded={abierto} aria-haspopup="menu" onClick={() => setAbierto((x) => !x)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60 cursor-pointer">{preparandoIA ? <><LoaderCircle size={17} className="animate-spin"/>Preparando con IA...</> : <>Postular ahora <ChevronDown size={17}/></>}</button>
-      {abierto && <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-full min-w-52 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
-        <button role="menuitem" onClick={() => { setAbierto(false); if (!necesitaSesion()) setManual(true); }} className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-primary-50 cursor-pointer">Postular manualmente</button>
-        <button role="menuitem" onClick={ia} className="borde-ia mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-violet-700 cursor-pointer">Postular con IA</button>
-=======
   return <div className="mt-2 space-y-2">
     {postulado ? <p className="flex w-full items-center justify-center rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Ya te postulaste</p> : <div className="relative" ref={ref}>
-      <button type="button" disabled={guardando || preparandoIA} aria-expanded={abierto} aria-haspopup="menu" onClick={() => setAbierto((x) => !x)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 cursor-pointer">{preparandoIA ? <><LoaderCircle size={17} className="animate-spin"/>Preparando con IA...</> : <>Postular ahora <ChevronDown size={17}/></>}</button>
+      <button type="button" disabled={guardando || preparandoIA} aria-expanded={abierto} aria-haspopup="menu" onClick={() => setAbierto((x) => !x)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-60 cursor-pointer">{preparandoIA ? <><LoaderCircle size={17} className="animate-spin"/>Preparando con IA...</> : <>Postular ahora <ChevronDown size={17}/></>}</button>
       {abierto && <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-full min-w-52 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
-        <button role="menuitem" onClick={() => { setAbierto(false); if (!necesitaSesion()) setManual(true);}} className="flex w-full items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-left text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"><FilePenLine size={16} />Postular manualmente</button>
-        <button role="menuitem" onClick={ia} className="flex w-full items-center gap-2 rounded-lg bg-violet-50 px-3 py-2 text-left text-sm font-semibold text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"><Sparkles size={16} />Postular con IA</button>
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
+        <button role="menuitem" onClick={() => { setAbierto(false); if (!necesitaSesion()) setManual(true);}} className="flex w-full items-center gap-2 rounded-lg bg-primary-50 px-3 py-2 text-left text-sm font-semibold text-primary-700 hover:bg-primary-100 transition-colors cursor-pointer"><FilePenLine size={16} />Postular manualmente</button>
+        <button role="menuitem" onClick={ia} className="borde-ia flex w-full items-center gap-2 rounded-lg bg-violet-50 px-3 py-2 text-left text-sm font-semibold text-violet-700 hover:bg-violet-100 transition-colors cursor-pointer"><Sparkles size={16} />Postular con IA</button>
       </div>}
     </div>}
     {!postulado && <button type="button" disabled={guardando || guardado || preparandoIA} onClick={guardar} className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 cursor-pointer">{guardando ? <LoaderCircle size={16} className="animate-spin"/> : <BookmarkPlus size={16}/>} {guardado ? 'Pendiente de postulación' : 'Postularme después'}</button>}

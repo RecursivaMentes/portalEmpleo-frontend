@@ -56,8 +56,8 @@ function obtenerEstiloCompatibilidad(porcentaje) {
 
   if (porcentaje >= 50) {
     return {
-      texto: "text-blue-600",
-      borde: "border-t-blue-500",
+      texto: "text-primary-600",
+      borde: "border-t-primary-500",
       color: "#2563eb",
       etiqueta: "Buena compatibilidad"
     };
@@ -351,19 +351,11 @@ export default function Recomendaciones({
   return (
     <main className="min-h-screen bg-slate-50 pb-6">
 
-<<<<<<< HEAD
-      <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white">
-        <div className="max-w-6xl mx-auto px-5 py-8">
-          <span className="inline-flex rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-medium mb-5">
-            Oportunidades pensadas para tu perfil
-          </span>
-=======
       {/* ENCABEZADO PRINCIPAL */}
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
 
       <section
-        className="bg-gradient-to-r from-blue-700
-          via-blue-600 to-indigo-700 text-white"
+        className="bg-gradient-to-r from-primary-700
+          via-primary-600 to-indigo-700 text-white"
       >
         <div
           className="w-full max-w-[1440px]
@@ -376,14 +368,10 @@ export default function Recomendaciones({
             Encontrá el empleo ideal para vos.
           </h1>
 
-<<<<<<< HEAD
-          <p className="text-primary-100 mt-4 text-lg max-w-2xl">
-=======
           <p
-            className="text-blue-100 mt-1
+            className="text-primary-100 mt-1
               text-sm max-w-3xl"
           >
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
             Descubrí ofertas compatibles con tus habilidades
             y conocé qué requisitos cumplís y cuáles podés mejorar.
           </p>
@@ -408,8 +396,8 @@ export default function Recomendaciones({
               icono={BriefcaseBusiness}
               valor={totalOportunidades}
               titulo="Oportunidades"
-              color="text-blue-600"
-              fondo="bg-blue-50"
+              color="text-primary-600"
+              fondo="bg-primary-50"
             />
 
             <IndicadorResumen
@@ -452,7 +440,7 @@ export default function Recomendaciones({
             >
               <SlidersHorizontal
                 size={17}
-                className="text-blue-600"
+                className="text-primary-600"
               />
 
               Filtrar recomendaciones
@@ -471,12 +459,6 @@ export default function Recomendaciones({
               <select
                 id="compatibilidad"
                 value={compatibilidadMinima}
-<<<<<<< HEAD
-                onChange={(e) =>
-                  setCompatibilidadMinima(Number(e.target.value))
-                }
-                className="h-11 px-3 border border-slate-200 rounded-lg bg-white text-sm text-slate-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-=======
                 onChange={(e) => {
                   setCompatibilidadMinima(
                     Number(e.target.value)
@@ -487,10 +469,9 @@ export default function Recomendaciones({
                 className="h-8 px-2 border
                   border-slate-200 rounded-lg bg-white
                   text-sm text-slate-700 outline-none
-                  focus:border-blue-500
-                  focus:ring-2 focus:ring-blue-100
+                  focus:border-primary-500
+                  focus:ring-2 focus:ring-primary-100
                   cursor-pointer"
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
               >
                 <option value={0}>Todas</option>
                 <option value={25}>Desde 25%</option>
@@ -530,15 +511,6 @@ export default function Recomendaciones({
                     } · Ordenadas por compatibilidad`}
               </p>
             </div>
-<<<<<<< HEAD
-
-            {!cargando && !error && (
-              <span className="inline-flex items-center rounded-full bg-primary-50 text-primary-700 border border-primary-100 px-3 py-1 text-xs font-medium">
-                {filtradas.length} resultados
-              </span>
-            )}
-=======
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
           </div>
 
 
@@ -602,26 +574,6 @@ export default function Recomendaciones({
                 const coincidentes = coincidentesDe(empleo);
                 const faltantes = faltantesDe(empleo);
 
-<<<<<<< HEAD
-                const colorPorcentaje =
-                  porcentaje >= 70
-                    ? "text-emerald-600"
-                    : porcentaje >= 40
-                      ? "text-primary-600"
-                      : "text-amber-600";
-
-                const colorBarra =
-                  porcentaje >= 70
-                    ? "bg-emerald-500"
-                    : porcentaje >= 40
-                      ? "bg-primary-500"
-                      : "bg-amber-500";
-
-                return (
-                  <article
-                    key={empleo.empleoId ?? empleo.id ?? indice}
-                    className="group bg-white border border-slate-200 rounded-2xl p-6 md:p-7 shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-200"
-=======
                 const estilo =
                   obtenerEstiloCompatibilidad(porcentaje);
 
@@ -640,34 +592,20 @@ export default function Recomendaciones({
                       hover:-translate-y-0.5
                       focus-within:z-20
                       transition-all duration-300`}
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
                   >
 
-<<<<<<< HEAD
-                      <div className="flex-1 min-w-0">
-                        <div className="mb-3">
-                          <span className="inline-flex rounded-full bg-primary-50 text-primary-700 border border-primary-100 px-3 py-1 text-xs font-semibold">
-                            Recomendado para vos
-                          </span>
-                        </div>
-
-                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary-700 transition-colors">
-                          {empleo.titulo}
-                        </h3>
-=======
                     {/* ICONO Y COMPATIBILIDAD */}
 
                     <div
                       className="flex items-center
                         justify-between mb-2"
                     >
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
 
                       <div
                         className="flex h-10 w-10
                           items-center justify-center
-                          rounded-xl bg-blue-50
-                          text-blue-600"
+                          rounded-xl bg-primary-50
+                          text-primary-600"
                       >
                         <CodeXml
                           size={22}
@@ -690,7 +628,7 @@ export default function Recomendaciones({
                         className="text-base font-semibold
                           leading-tight text-slate-900
                           break-words
-                          group-hover:text-blue-700
+                          group-hover:text-primary-700
                           transition-colors"
                       >
                         {empleo.titulo}
@@ -818,17 +756,6 @@ export default function Recomendaciones({
 
                         )}
 
-<<<<<<< HEAD
-                        <button
-                          type="button"
-                          onClick={() => setOfertaSeleccionada(empleo)}
-                          className="w-full bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-5 py-3 text-sm font-semibold cursor-pointer transition-colors"
-                        >
-                          Ver oferta →
-                        </button>
-                        <AccionesPostulacion empleo={empleo} onSolicitarLogin={onSolicitarLogin}/>
-=======
->>>>>>> f1280b8 (feat: rediseño visual de recomendaciones y acciones de postulacion)
                       </div>
                     </div>
 
@@ -847,12 +774,12 @@ export default function Recomendaciones({
                         }
                         className="inline-flex w-full
                           items-center justify-center gap-2
-                          rounded-lg bg-blue-50
-                          hover:bg-blue-100 text-blue-700
+                          rounded-lg bg-primary-50
+                          hover:bg-primary-100 text-primary-700
                           px-3 py-2 text-xs font-semibold
                           cursor-pointer transition-colors
                           focus-visible:ring-2
-                          focus-visible:ring-blue-500"
+                          focus-visible:ring-primary-500"
                       >
                         Ver oferta
 
@@ -919,8 +846,8 @@ export default function Recomendaciones({
                 onClick={() =>
                   setPagina(paginaActual + 1)
                 }
-                className="rounded-lg bg-blue-600
-                  text-white px-3 py-2 hover:bg-blue-700
+                className="rounded-lg bg-primary-600
+                  text-white px-3 py-2 hover:bg-primary-700
                   disabled:opacity-40
                   disabled:cursor-not-allowed
                   cursor-pointer transition-colors"
