@@ -26,7 +26,7 @@ export default function ConfiguracionPostulaciones() {
   function editar(nombre, valor) { setDatos((v) => ({ ...v, [nombre]: valor })); setError(''); setExito(''); }
   async function guardar(e) {
     e.preventDefault(); if (guardando || !datos) return;
-    if (datos.compatibilidadMinima < 1 || datos.compatibilidadMinima > 100) { setError('La compatibilidad debe estar entre 1 y 100 %.'); return; }
+    if (datos.compatibilidadMinima < 50 || datos.compatibilidadMinima > 100) { setError('La compatibilidad debe estar entre 50 y 100 %.'); return; }
     if (datos.limiteDiario < 1 || datos.limiteDiario > 10) { setError('El límite diario debe estar entre 1 y 10.'); return; }
     setGuardando(true); setError(''); setExito('');
     try {
@@ -45,10 +45,10 @@ export default function ConfiguracionPostulaciones() {
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
           <p className="font-semibold text-slate-900">Orden de selección del agente</p>
           <p className="mt-1">1. Primero, las ofertas pendientes elegibles según el orden configurado.</p>
-          <p className="mt-1">2. Si no quedan pendientes elegibles, las recomendaciones de mayor compatibilidad que cumplan tus preferencias laborales.</p>
-          <p className="mt-2 text-xs text-slate-500">Se respetan la compatibilidad mínima, el límite diario y las exclusiones. Quitar de pendientes no excluye una oferta del agente; para eso usá «No me interesa».</p>
+          <p className="mt-1">2. Si no quedan pendientes elegibles, las recomendaciones en orden de mayor compatibilidad, respetando el mínimo configurado.</p>
+          <p className="mt-2 text-xs text-slate-500">Se respetan el límite diario y las exclusiones. La compatibilidad mínima se aplica solo a recomendaciones. Quitar de pendientes no excluye una oferta del agente; para eso usá «No me interesa».</p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold text-slate-800">Compatibilidad mínima (%)<input type="number" min="1" max="100" value={datos.compatibilidadMinima} onChange={(e) => editar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
+        <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold text-slate-800">Mínimo para recomendaciones (%)<span className="block font-normal text-slate-500">No se aplica a pendientes.</span><input type="number" min="50" max="100" value={datos.compatibilidadMinima} onChange={(e) => editar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
         <label className="block text-sm font-semibold text-slate-800">Límite diario (1 a 10)<input type="number" min="1" max="10" value={datos.limiteDiario} onChange={(e) => editar('limiteDiario', Number(e.target.value))} className={campo}/></label></div>
         <label className="block text-sm font-semibold text-slate-800">Orden de pendientes<select className={campo} value={datos.ordenPendientes || 'Prioridad'} onChange={(e) => editar('ordenPendientes', e.target.value)}>{ordenes.map(([v,t]) => <option key={v} value={v}>{t}</option>)}</select></label>
         <p className="text-xs text-slate-500">Las preferencias laborales y la zona horaria existentes se conservarán al guardar.</p>

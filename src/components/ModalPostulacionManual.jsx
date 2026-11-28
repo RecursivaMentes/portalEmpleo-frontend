@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { LoaderCircle, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { obtenerCvs, obtenerVistaPreviaCv } from '../services/cvsService';
@@ -28,7 +29,7 @@ export default function ModalPostulacionManual({ empleo, onCerrar, onExito }) {
     return () => { activo = false; };
   }, []);
   useEffect(() => {
-    const escapar = (evento) => { if (evento.key === 'Escape' && !enviando) onCerrar(); };
+    const escapar = (evento) => { if (evento.key === 'Escape' && !enviando && !document.querySelector('[role="alertdialog"]')) onCerrar(); };
     document.addEventListener('keydown', escapar);
     return () => document.removeEventListener('keydown', escapar);
   }, [enviando, onCerrar]);
@@ -57,7 +58,7 @@ export default function ModalPostulacionManual({ empleo, onCerrar, onExito }) {
     } catch (err) { setError(err.message); }
     finally { setEnviando(false); }
   }
-  return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4" role="presentation">
+  return createPortal(<div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4" role="presentation">
     <section role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
       <div className="flex items-start justify-between gap-3"><div><h2 id="titulo-postular" className="text-xl font-bold text-slate-900">Postulación manual</h2><p className="mt-1 text-sm text-slate-600">{empleo.titulo}</p></div><button ref={botonCerrar} type="button" disabled={enviando} onClick={onCerrar} aria-label="Cerrar" className="cursor-pointer text-slate-500"><X size={21}/></button></div>
       <form onSubmit={enviar} className="mt-6 space-y-5">
@@ -76,5 +77,5 @@ export default function ModalPostulacionManual({ empleo, onCerrar, onExito }) {
       </form>
       <ConfirmacionAccion abierto={confirmando} titulo="Confirmar postulación" mensaje={`¿Querés enviar tu postulación a «${empleo.titulo || 'esta oferta'}» con el CV seleccionado? Esta acción no se puede deshacer.`} confirmar="Enviar postulación" onConfirmar={confirmarEnvio} onCancelar={() => setConfirmando(false)}/>
     </section>
-  </div>;
+  </div>, document.body);
 }
