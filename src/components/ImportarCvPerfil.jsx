@@ -341,7 +341,7 @@ export default function ImportarCvPerfil({ cv, onCerrar }) {
             <button
               type="button"
               onClick={analizar}
-              className="px-5 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 cursor-pointer"
+              className="px-4 py-2 text-sm font-semiboldrounded-lg bg-primary-600 text-white hover:bg-primary-700 cursor-pointer"
             >
               Reintentar
             </button>
@@ -356,7 +356,7 @@ export default function ImportarCvPerfil({ cv, onCerrar }) {
                 type="button"
                 onClick={importar}
                 disabled={fase === "aplicando" || cantidad === 0 || faltaExperiencia}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semiboldrounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
               >
                 {fase === "aplicando" && <LoaderCircle size={16} className="animate-spin" />}
                 {fase === "aplicando" ? "Importando…" : "Importar seleccionados"}
@@ -368,7 +368,7 @@ export default function ImportarCvPerfil({ cv, onCerrar }) {
             <Link
               to="/perfil/laboral"
               onClick={onCerrar}
-              className="px-5 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+              className="px-4 py-2 text-sm font-semiboldrounded-lg bg-primary-600 text-white hover:bg-primary-700"
             >
               Ver mi perfil laboral
             </Link>
@@ -378,7 +378,7 @@ export default function ImportarCvPerfil({ cv, onCerrar }) {
             type="button"
             onClick={onCerrar}
             disabled={fase === "aplicando"}
-            className="px-5 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
+            className="px-4 py-2 text-sm font-semiboldborder border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
           >
             {fase === "resultado" ? "Cerrar" : "Cancelar"}
           </button>
