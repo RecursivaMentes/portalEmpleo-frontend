@@ -1,28 +1,55 @@
-﻿const API_URL = "/api/recomendaciones";
+const API_URL = import.meta.env.VITE_RECOMENDACIONES_API_URL;
+const USUARIOS_URL = import.meta.env.VITE_USUARIOS_API_URL;
 
 export async function obtenerRecomendaciones(usuarioId) {
-  if (!usuarioId) {
+  const fetchOptions = {
+    credentials: "include",
+  };
+
+  let id = usuarioId;
+
+  if (!id) {
+    const perfilResponse = await fetch(
+      `${USUARIOS_URL}/api/auth/profile`,
+      fetchOptions
+    );
+
+    if (perfilResponse.status === 401) {
+      throw new Error("Iniciá sesión para consultar tus recomendaciones");
+    }
+
+    if (!perfilResponse.ok) {
+      throw new Error("No se pudo obtener el usuario autenticado");
+    }
+
+    const perfil = await perfilResponse.json();
+    id = perfil.id;
+  }
+
+  if (!id) {
     throw new Error("El identificador del usuario es obligatorio");
   }
 
-  const token = localStorage.getItem("accessToken");
-
-  if (!token) {
-    throw new Error("No hay una sesión activa");
-  }
-
   const response = await fetch(
-    `${API_URL}/usuario/${encodeURIComponent(usuarioId)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    `${API_URL}/api/recomendaciones/usuario/${encodeURIComponent(id)}`,
+    fetchOptions
   );
+
+  if (response.status === 401) {
+    throw new Error("Iniciá sesión para consultar tus recomendaciones");
+  }
 
   if (!response.ok) {
     throw new Error(`Error al obtener recomendaciones: HTTP ${response.status}`);
   }
 
-  return response.json();
+  const datos = await response.json();
+
+  return Array.isArray(datos)
+    ? datos.map(empleo => ({
+        ...empleo,
+        requisitosCoincidentes:
+          empleo.coincidencias ?? empleo.requisitosCoincidentes ?? []
+      }))
+    : datos;
 }

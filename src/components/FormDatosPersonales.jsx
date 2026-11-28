@@ -4,7 +4,7 @@ import { actualizarDatosPersonales, obtenerDatosPersonales, registrarse } from '
 
 const inicial = { nombre: '', apellido: '', email: '', telefono: '', password: '', confirmacion: '' };
 const etiqueta = 'block text-sm font-semibold text-slate-700 mb-2';
-const entrada = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
+const entrada = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100';
 const patronNombre = /^[\p{L}][\p{L}\p{M}]*(?:[ '’-][\p{L}][\p{L}\p{M}]*)*$/u;
 const patronTelefono = /^\+?(?:[0-9]+|\([0-9]+\))(?:[ -]?(?:[0-9]+|\([0-9]+\)))*$/;
 
@@ -103,7 +103,7 @@ export default function FormDatosPersonales({ actualizar = false, onRegistrado, 
       <div className={actualizar ? 'mx-auto max-w-xl bg-white rounded-2xl border border-slate-200 p-7 shadow-sm' : ''}>
         <h2 className="text-xl font-bold text-slate-900">{actualizar ? 'Datos personales' : 'Creá tu cuenta'}</h2>
         <p className="mt-1 text-sm text-slate-500">{actualizar ? 'Consultá y actualizá tus datos de contacto.' : 'Completá tus datos para registrarte.'}</p>
-        {!cargando && actualizar && !original ? <div role="alert" className="mt-6"><p className="text-red-700 text-sm">{error || 'No se pudieron cargar los datos.'}</p><button className="mt-3 rounded-xl bg-blue-600 px-5 py-3 text-white cursor-pointer" type="button" onClick={() => { setError(''); setCargando(true); setRecarga((v) => v + 1); }}>Reintentar</button></div> : cargando ? <div role="status" aria-label="Cargando datos personales" className="mt-7 space-y-5 animate-pulse">{[1, 2, 3, 4].map((i) => <div key={i}><div className="h-4 w-28 bg-slate-200 rounded mb-2"/><div className="h-11 bg-slate-200 rounded-xl"/></div>)}</div> : (
+        {!cargando && actualizar && !original ? <div role="alert" className="mt-6"><p className="text-red-700 text-sm">{error || 'No se pudieron cargar los datos.'}</p><button className="mt-3 rounded-xl bg-primary-600 px-5 py-3 text-white cursor-pointer" type="button" onClick={() => { setError(''); setCargando(true); setRecarga((v) => v + 1); }}>Reintentar</button></div> : cargando ? <div role="status" aria-label="Cargando datos personales" className="mt-7 space-y-5 animate-pulse">{[1, 2, 3, 4].map((i) => <div key={i}><div className="h-4 w-28 bg-slate-200 rounded mb-2"/><div className="h-11 bg-slate-200 rounded-xl"/></div>)}</div> : (
           <form onSubmit={enviar} noValidate className="mt-6 space-y-4">
             {campos.map(([campo, titulo]) => (
               <div key={campo}>
@@ -119,7 +119,7 @@ export default function FormDatosPersonales({ actualizar = false, onRegistrado, 
             {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
             {exito && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{exito}</div>}
             <div className="flex flex-wrap gap-3 pt-2">
-              <button type="submit" disabled={guardando || (actualizar && !modificado)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">{guardando && <LoaderCircle size={18} className="animate-spin" />}{actualizar ? 'Guardar cambios' : 'Registrarme'}</button>
+              <button type="submit" disabled={guardando || (actualizar && !modificado)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 font-semibold text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer">{guardando && <LoaderCircle size={18} className="animate-spin" />}{actualizar ? 'Guardar cambios' : 'Registrarme'}</button>
               {actualizar && <button type="button" disabled={!modificado || guardando} onClick={() => { setDatos({ ...original }); setErrores({}); setError(''); }} className="rounded-xl bg-slate-100 px-5 py-3 text-slate-700 disabled:opacity-50 cursor-pointer">Descartar</button>}
               {onCancelar && <button type="button" disabled={guardando} onClick={onCancelar} className="px-4 py-3 text-sm text-slate-600 cursor-pointer">Volver a iniciar sesión</button>}
             </div>
