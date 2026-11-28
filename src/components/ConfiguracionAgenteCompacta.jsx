@@ -18,8 +18,7 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
 
   useEffect(() => {
     let activo = true;
-    const token = localStorage.getItem('accessToken');
-    axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(url, { withCredentials: true })
       .then(({ data }) => {
         if (!activo) return;
         setDatos(data); setOriginal(JSON.stringify(data));
@@ -37,16 +36,15 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
   async function guardar(evento) {
     evento.preventDefault();
     if (guardando || !datos) return;
-    if (datos.compatibilidadMinima < 1 || datos.compatibilidadMinima > 100) {
-      setError('La compatibilidad mínima debe estar entre 1 y 100 %.'); return;
+    if (datos.compatibilidadMinima < 50 || datos.compatibilidadMinima > 100) {
+      setError('La compatibilidad mínima debe estar entre 50 y 100 %.'); return;
     }
     if (datos.limiteDiario < 1 || datos.limiteDiario > 10) {
       setError('El límite diario debe estar entre 1 y 10.'); return;
     }
     setGuardando(true); setError('');
     try {
-      const token = localStorage.getItem('accessToken');
-      const { data } = await axios.put(url, datos, { headers: { Authorization: `Bearer ${token}` } });
+        const { data } = await axios.put(url, datos, { withCredentials: true });
       setDatos(data); setOriginal(JSON.stringify(data));
       window.dispatchEvent(new CustomEvent('recursiva:aviso', { detail: { mensaje: 'Configuración de postulaciones guardada.' } }));
       await alGuardar?.();
@@ -64,11 +62,16 @@ export default function ConfiguracionAgenteCompacta({ alGuardar }) {
       <form onSubmit={guardar} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-xs font-semibold text-slate-700">Modo del agente<select value={datos.modo || 'Desactivada'} onChange={(e) => cambiar('modo', e.target.value)} className={campo}>{modos.map(([v,t]) => <option key={v} value={v}>{t}</option>)}</select></label>
-          <label className="text-xs font-semibold text-slate-700">Compatibilidad mínima (%)<input type="number" min="1" max="100" value={datos.compatibilidadMinima} onChange={(e) => cambiar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
+          <label className="text-xs font-semibold text-slate-700">Mínimo para recomendaciones (%)<span className="block font-normal text-slate-500">No se aplica a pendientes.</span><input type="number" min="50" max="100" value={datos.compatibilidadMinima} onChange={(e) => cambiar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
           <label className="text-xs font-semibold text-slate-700">Límite diario (1–10)<input type="number" min="1" max="10" value={datos.limiteDiario} onChange={(e) => cambiar('limiteDiario', Number(e.target.value))} className={campo}/></label>
           <label className="text-xs font-semibold text-slate-700">Orden de pendientes<select value={datos.ordenPendientes || 'Prioridad'} onChange={(e) => cambiar('ordenPendientes', e.target.value)} className={campo}>{ordenes.map(([v,t]) => <option key={v} value={v}>{t}</option>)}</select></label>
         </div>
-        <p className="text-xs text-slate-500">En modo asistido las propuestas requieren tu aprobación. En automático pueden enviarse según la configuración y las validaciones del backend.</p>
+        <p className="text-xs text-slate-500">En modo asistido las propuestas requieren tu aprobación. En automático pueden enviarse respetando los límites y las aprobaciones de CV que correspondan.</p>
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <p><strong className="text-slate-800">1. Pendientes:</strong> primero procesa las ofertas elegibles según el orden elegido.</p>
+          <p className="mt-1"><strong className="text-slate-800">2. Recomendaciones:</strong> si no quedan pendientes elegibles, elige las recomendaciones en orden de compatibilidad, respetando el mínimo configurado.</p>
+          <p className="mt-1">Respeta el límite diario y las exclusiones. El mínimo de compatibilidad se aplica solo a recomendaciones. «No me interesa» impide que el agente vuelva a seleccionar esa oferta.</p>
+        </div>
         {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <div className="flex justify-end"><button type="submit" disabled={guardando || JSON.stringify(datos) === original} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">{guardando ? <LoaderCircle size={16} className="animate-spin"/> : <Save size={16}/>}Guardar cambios</button></div>
       </form>}

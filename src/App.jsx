@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
-import { Briefcase, Sparkles, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn } from 'lucide-react';
+import { Briefcase, Sparkles, FileText, ClipboardList, ChevronDown, BriefcaseBusiness, User, UserCircle, LogOut, LogIn, Lock } from 'lucide-react';
 import Empleos from './pages/Empleos';
 import Recomendaciones from './pages/Recomendaciones';
 import IniciarSesion from './pages/IniciarSesion';
@@ -16,6 +16,7 @@ import ModalAutenticacion from './components/Autenticacion';
 import AvisosGlobales from './components/Avisos';
 import { cerrarSesionUsuario, obtenerUsuarioIdActual,obtenerDatosPersonales } from './services/usuariosService';
 import Notificaciones from './components/Notificaciones';
+import ActividadPostulacionesIA from './components/ActividadPostulacionesIA';
 
 const enlaceBase = 'inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer';
 const claseEnlace = ({ isActive }) => `${enlaceBase} ${isActive ? 'border-primary-600 text-primary-700' : 'border-transparent text-slate-500 hover:text-primary-700 hover:border-primary-200'}`;
@@ -34,7 +35,7 @@ function MenuUsuario({ salir }) {
   const opciones = [
     ['/perfil/datos', 'Datos personales', User],
     ['/perfil/laboral', 'Perfil laboral', BriefcaseBusiness],
-    ['/perfil/seguridad', 'Cambiar contraseña', User],
+    ['/perfil/seguridad', 'Cambiar contraseña', Lock],
     ['/cvs', 'Mis CV', FileText],
   ];
   return <div className="relative ml-auto" ref={menuRef} onMouseEnter={() => setAbierto(true)} onMouseLeave={() => setAbierto(false)} >
@@ -113,7 +114,7 @@ export default function App() {
     return () => document.removeEventListener('keydown', escapar);
   }, [chatVisible]);
 
-  const salir = () => { setChatAbierto(false); setChatMontado(false); cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
+  const salir = async () => { setChatAbierto(false); setChatMontado(false); await cerrarSesionUsuario(); navigate('/empleos', { replace: true }); };
   const navegarProtegido = (e, destino) => {
     if (usuarioId) return;
     e.preventDefault();
@@ -128,6 +129,7 @@ export default function App() {
       <Route path="/iniciarSesion" element={<IniciarSesion/>}/>
       <Route path="/registrarse" element={<Registrarse/>}/>
       <Route path="/recuperar-clave" element={<RecuperarContrasena/>}/>
+      <Route path="/restablecer-contrasena" element={<RecuperarContrasena/>}/>
       <Route path="/*" element={<>
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40"><nav className="max-w-6xl mx-auto px-5 flex flex-wrap items-center gap-2">
           <NavLink to="/empleos" className={claseEnlace}><Briefcase size={18} className="text-slate-400"/>Buscar empleos</NavLink>
@@ -135,9 +137,10 @@ export default function App() {
           <MenuPostulaciones proteger={navegarProtegido}/>
           <NavLink to="/cvs" onClick={(e) => navegarProtegido(e, 'Mis CV')} className={claseEnlace}><FileText size={18}/>Mis CV</NavLink>
           {usuarioId
-            ? <div className="ml-auto flex items-center gap-1"><Notificaciones/><MenuUsuario salir={salir}/></div>
+            ? <div className="ml-auto flex items-center gap-1">{import.meta.env.VITE_NOTIFICACIONES_HABILITADAS === 'true' && <Notificaciones/>}<MenuUsuario salir={salir}/></div>
             : <button type="button" onClick={() => pedirLogin()} className={`${enlaceBase} ml-auto border-transparent text-slate-600 hover:text-primary-700`}><LogIn size={19}/>Iniciar sesión</button>}
         </nav></header>
+        {usuarioId && <ActividadPostulacionesIA key={usuarioId}/>}
         <main><Routes>
           <Route path="empleos" element={<Empleos onSolicitarLogin={pedirLogin}/>}/>
           <Route path="recomendaciones" element={acceso(<Recomendaciones usuarioId={usuarioId} onSolicitarLogin={pedirLogin}/>)}/>

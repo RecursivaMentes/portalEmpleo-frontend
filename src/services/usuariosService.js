@@ -96,7 +96,7 @@ export const actualizarDatosPersonales = async (datos) => {
 
 export async function cambiarContrasena(datos) {
   try {
-    const { data } = await api.post('/api/auth/change-password', datos);
+    const { data } = await api.put('/api/auth/change-password', datos);
     return data;
   } catch (error) {
     if (error.response?.status === 401) {

@@ -17,8 +17,7 @@ export default function ConfiguracionPostulaciones() {
   const [exito, setExito] = useState('');
   useEffect(() => {
     let activo = true;
-    const token = localStorage.getItem('accessToken');
-    axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
+    axios.get(url, { withCredentials: true })
       .then(({ data }) => { if (activo) { setDatos(data); setOriginal(JSON.stringify(data)); } })
       .catch((e) => { if (activo) setError(errorLegible(e)); })
       .finally(() => { if (activo) setCargando(false); });
@@ -27,12 +26,11 @@ export default function ConfiguracionPostulaciones() {
   function editar(nombre, valor) { setDatos((v) => ({ ...v, [nombre]: valor })); setError(''); setExito(''); }
   async function guardar(e) {
     e.preventDefault(); if (guardando || !datos) return;
-    if (datos.compatibilidadMinima < 1 || datos.compatibilidadMinima > 100) { setError('La compatibilidad debe estar entre 1 y 100 %.'); return; }
+    if (datos.compatibilidadMinima < 50 || datos.compatibilidadMinima > 100) { setError('La compatibilidad debe estar entre 50 y 100 %.'); return; }
     if (datos.limiteDiario < 1 || datos.limiteDiario > 10) { setError('El límite diario debe estar entre 1 y 10.'); return; }
     setGuardando(true); setError(''); setExito('');
     try {
-      const token = localStorage.getItem('accessToken');
-      const { data } = await axios.put(url, datos, { headers: { Authorization: `Bearer ${token}` } });
+        const { data } = await axios.put(url, datos, { withCredentials: true });
       setDatos(data); setOriginal(JSON.stringify(data)); setExito('Configuración guardada correctamente.');
       window.dispatchEvent(new CustomEvent('recursiva:aviso', { detail: { mensaje: 'Configuración guardada correctamente.' } }));
     } catch (e) { setError(errorLegible(e)); }
@@ -43,8 +41,14 @@ export default function ConfiguracionPostulaciones() {
     <div className="mx-auto max-w-4xl px-5 pt-8">{cargando ? <div role="status" className="flex gap-2"><LoaderCircle className="animate-spin"/>Cargando configuración...</div> : !datos ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error || 'No se pudo cargar la configuración.'}</div> :
       <form onSubmit={guardar} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <label className="block text-sm font-semibold text-slate-800">Modo del agente<select className={campo} value={datos.modo || 'Desactivada'} onChange={(e) => editar('modo', e.target.value)}>{opciones.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
-        <p className="rounded-xl bg-primary-50 p-3 text-sm text-primary-800">{datos.modo === 'Automatica' ? 'El agente podrá enviar postulaciones automáticamente según los límites configurados.' : datos.modo === 'Asistida' ? 'El agente prepara propuestas que requieren tu aprobación.' : 'El procesamiento autónomo está desactivado. Podés seguir postulándote manualmente.'}</p>
-        <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold text-slate-800">Compatibilidad mínima (%)<input type="number" min="1" max="100" value={datos.compatibilidadMinima} onChange={(e) => editar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
+        <p className="rounded-xl bg-primary-50 p-3 text-sm text-primary-800">{datos.modo === 'Automatica' ? 'El agente podrá enviar postulaciones automáticamente según los límites configurados. Los cambios de CV que requieran tu aprobación no se aplicarán sin tu autorización.' : datos.modo === 'Asistida' ? 'El agente prepara propuestas que requieren tu aprobación antes de enviarse.' : 'El procesamiento autónomo está desactivado. Podés seguir postulándote manualmente o solicitar ayuda de la IA.'}</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+          <p className="font-semibold text-slate-900">Orden de selección del agente</p>
+          <p className="mt-1">1. Primero, las ofertas pendientes elegibles según el orden configurado.</p>
+          <p className="mt-1">2. Si no quedan pendientes elegibles, las recomendaciones en orden de mayor compatibilidad, respetando el mínimo configurado.</p>
+          <p className="mt-2 text-xs text-slate-500">Se respetan el límite diario y las exclusiones. La compatibilidad mínima se aplica solo a recomendaciones. Quitar de pendientes no excluye una oferta del agente; para eso usá «No me interesa».</p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2"><label className="block text-sm font-semibold text-slate-800">Mínimo para recomendaciones (%)<span className="block font-normal text-slate-500">No se aplica a pendientes.</span><input type="number" min="50" max="100" value={datos.compatibilidadMinima} onChange={(e) => editar('compatibilidadMinima', Number(e.target.value))} className={campo}/></label>
         <label className="block text-sm font-semibold text-slate-800">Límite diario (1 a 10)<input type="number" min="1" max="10" value={datos.limiteDiario} onChange={(e) => editar('limiteDiario', Number(e.target.value))} className={campo}/></label></div>
         <label className="block text-sm font-semibold text-slate-800">Orden de pendientes<select className={campo} value={datos.ordenPendientes || 'Prioridad'} onChange={(e) => editar('ordenPendientes', e.target.value)}>{ordenes.map(([v,t]) => <option key={v} value={v}>{t}</option>)}</select></label>
         <p className="text-xs text-slate-500">Las preferencias laborales y la zona horaria existentes se conservarán al guardar.</p>

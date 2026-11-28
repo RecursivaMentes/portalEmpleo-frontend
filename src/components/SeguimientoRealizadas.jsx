@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { obtenerEmpleos } from '../services/empleosService';
-import { avisar, retirarPostulacion, eliminarPostulacionHistorial, limpiarCacheOfertas } from '../services/postulacionesService';
+import { avisar, retirarPostulacion, eliminarPostulacionHistorial } from '../services/postulacionesService';
 import ConfirmacionAccion from './ConfirmacionAccion';
 
 let consultaOfertas = null;
@@ -35,6 +35,7 @@ export function AccionesSeguimiento({ item, onActualizar }) {
   const [accion, setAccion] = useState('');
   const [ocupado, setOcupado] = useState(false);
   const puedeRetirar = ['Pendiente', 'EnRevision', 'Entrevista'].includes(String(item.estado));
+  const puedeEliminar = ['Retirada', 'Aceptada', 'Rechazada'].includes(String(item.estado));
   async function confirmar() {
     if (!accion || ocupado) return;
     const actual = accion;
@@ -48,8 +49,7 @@ export function AccionesSeguimiento({ item, onActualizar }) {
         await eliminarPostulacionHistorial(item.id);
         avisar('Postulación eliminada del historial personal.');
       }
-      limpiarCacheOfertas();
-      await onActualizar();
+      await onActualizar(true);
     } catch (error) {
       avisar(error.message || 'No se pudo completar la operación.', 'error');
     } finally {
@@ -58,7 +58,7 @@ export function AccionesSeguimiento({ item, onActualizar }) {
   }
   return <>
     {puedeRetirar && <button type="button" disabled={ocupado} onClick={() => setAccion('retirar')} className="ml-2 mt-2 rounded-xl border border-amber-200 px-4 py-2.5 text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-50">Retirar postulación</button>}
-    <button type="button" disabled={ocupado} onClick={() => setAccion('eliminar')} className="ml-2 mt-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50">{ocupado ? <LoaderCircle size={16} className="inline animate-spin"/> : null} Eliminar del historial</button>
-    <ConfirmacionAccion abierto={!!accion} titulo={accion === 'retirar' ? 'Retirar postulación' : 'Eliminar del historial'} mensaje={accion === 'retirar' ? 'La postulación quedará retirada, pero se conservará en el historial.' : 'La postulación dejará de aparecer en tu historial, pero la empresa conservará el registro. Esto no permite volver a postularse a la misma oferta.'} confirmar={accion === 'retirar' ? 'Retirar' : 'Eliminar del historial'} peligro ocupado={ocupado} onConfirmar={confirmar} onCancelar={() => setAccion('')}/>
+    {puedeEliminar && <button type="button" disabled={ocupado} onClick={() => setAccion('eliminar')} className="ml-2 mt-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50">{ocupado ? <LoaderCircle size={16} className="inline animate-spin"/> : null} Eliminar del historial</button>}
+    <ConfirmacionAccion abierto={!!accion} titulo={accion === 'retirar' ? 'Retirar postulación' : 'Eliminar del historial'} mensaje={accion === 'retirar' ? 'La postulación quedará retirada y se conservará en el historial. El agente no volverá a seleccionarla hasta que la vuelvas a incluir.' : 'La postulación y su documento enviado se eliminarán del registro. Podrás postularte manualmente si la oferta sigue disponible, o volver a incluirla para el agente.'} confirmar={accion === 'retirar' ? 'Retirar' : 'Eliminar del historial'} peligro ocupado={ocupado} onConfirmar={confirmar} onCancelar={() => setAccion('')}/>
   </>;
 }
