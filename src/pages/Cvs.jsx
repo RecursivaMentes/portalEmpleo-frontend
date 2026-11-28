@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye, MessageSquare } from "lucide-react";
 import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
 import { obtenerMensajeErrorCv, obtenerMensajeErrorDescargaCv } from "../services/cvErrors";
+import ImportarCvPerfil from "../components/ImportarCvPerfil";
 
 const formularioVacio = {
   titulo: "",
@@ -41,6 +42,10 @@ export default function Cvs() {
   const [notificacion, setNotificacion] = useState(null);
   const [cvParaEliminar, setCvParaEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+
+  // CV cuyos datos se están importando al perfil, y CV recién subido al que se le ofrece importar.
+  const [cvParaImportar, setCvParaImportar] = useState(null);
+  const [cvRecienSubido, setCvRecienSubido] = useState(null);
 
   const temporizadorNotificacion = useRef(null);
 
@@ -93,6 +98,7 @@ export default function Cvs() {
     setDatosIA({ ...formularioIAVacio });
     setErrorIA("");
     setTextoRecuperadoIA("");
+    setCvRecienSubido(null);
   };
 
   const abrirNuevoCv = () => {
@@ -254,10 +260,11 @@ export default function Cvs() {
 
     try {
       setSubiendo(true);
-      await subirCv(archivoCv, tituloArchivo.trim(), false);
+      const creado = await subirCv(archivoCv, tituloArchivo.trim(), false);
       await cargarCvs();
       cerrarFormulario();
       setMensaje("El archivo se subió correctamente.");
+      if (creado?.id) setCvRecienSubido({ id: creado.id, titulo: creado.titulo ?? tituloArchivo.trim() });
     } catch (err) {
       mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo subir el CV."));
     } finally {
@@ -403,6 +410,19 @@ export default function Cvs() {
                 className="mb-6 bg-green-50 text-green-700 border border-green-200 rounded-lg p-4"
               >
                 {mensaje}
+                {cvRecienSubido && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-slate-700">
+                    <span>¿Querés que la IA lea el CV y te proponga datos para tu perfil laboral?</span>
+                    <button
+                      type="button"
+                      onClick={() => { setCvParaImportar(cvRecienSubido); setCvRecienSubido(null); }}
+                      className="borde-ia inline-flex items-center gap-2 px-4 py-2 rounded-lg text-violet-700 font-medium text-sm cursor-pointer"
+                    >
+                      <Sparkles size={16} />
+                      Importar a mi perfil
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -515,6 +535,17 @@ export default function Cvs() {
                         >
                           <MessageSquare size={17} />
                           Modificar con chatbot
+                        </button>
+
+                        {/* Importar los datos del CV al perfil laboral (con IA, el usuario confirma) */}
+                        <button
+                          type="button"
+                          onClick={() => setCvParaImportar({ id: cv.id, titulo: cv.titulo })}
+                          className="borde-ia col-span-2 inline-flex items-center justify-center gap-2 px-3 py-2.5
+                                    text-violet-700 font-medium rounded-lg cursor-pointer text-sm"
+                        >
+                          <Sparkles size={17} />
+                          Importar a mi perfil
                         </button>
 
                         {/* Editar */}
@@ -982,6 +1013,15 @@ export default function Cvs() {
             <X size={18} />
           </button>
         </div>
+      )}
+
+      {/* IMPORTAR DATOS DEL CV AL PERFIL */}
+      {cvParaImportar && (
+        <ImportarCvPerfil
+          key={cvParaImportar.id}
+          cv={cvParaImportar}
+          onCerrar={() => setCvParaImportar(null)}
+        />
       )}
 
       {/* CONFIRMAR ELIMINACIÓN */}

@@ -25,6 +25,10 @@ export default defineConfig({
         target: "http://localhost:5079",
         changeOrigin: true,
       },
+      "/api/analisis-cv": {
+        target: "http://localhost:5079",
+        changeOrigin: true,
+      },
     },
   },
 });
