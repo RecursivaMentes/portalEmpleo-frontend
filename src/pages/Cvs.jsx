@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { FileText, LoaderCircle, Download, Plus, X, Pencil, Trash2, Upload, Sparkles, Eye, MessageSquare } from "lucide-react";
 import { obtenerCvs, obtenerCv, obtenerVistaPreviaCv, descargarCv, descargarArchivoCv, crearCv, actualizarCv, eliminarCv, subirCv, generarCvIA } from "../services/cvsService";
 import { obtenerMensajeErrorCv, obtenerMensajeErrorDescargaCv } from "../services/cvErrors";
+import ImportarCvPerfil from "../components/ImportarCvPerfil";
 
 const formularioVacio = {
   titulo: "",
@@ -41,6 +42,10 @@ export default function Cvs() {
   const [notificacion, setNotificacion] = useState(null);
   const [cvParaEliminar, setCvParaEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
+
+  // CV cuyos datos se están importando al perfil, y CV recién subido al que se le ofrece importar.
+  const [cvParaImportar, setCvParaImportar] = useState(null);
+  const [cvRecienSubido, setCvRecienSubido] = useState(null);
 
   const temporizadorNotificacion = useRef(null);
 
@@ -93,6 +98,7 @@ export default function Cvs() {
     setDatosIA({ ...formularioIAVacio });
     setErrorIA("");
     setTextoRecuperadoIA("");
+    setCvRecienSubido(null);
   };
 
   const abrirNuevoCv = () => {
@@ -254,10 +260,11 @@ export default function Cvs() {
 
     try {
       setSubiendo(true);
-      await subirCv(archivoCv, tituloArchivo.trim(), false);
+      const creado = await subirCv(archivoCv, tituloArchivo.trim(), false);
       await cargarCvs();
       cerrarFormulario();
       setMensaje("El archivo se subió correctamente.");
+      if (creado?.id) setCvRecienSubido({ id: creado.id, titulo: creado.titulo ?? tituloArchivo.trim() });
     } catch (err) {
       mostrarNotificacion(obtenerMensajeErrorCv(err, "No se pudo subir el CV."));
     } finally {
@@ -301,14 +308,15 @@ export default function Cvs() {
     }
   };
 
+  // Mismas medidas de campos y botones que Configuración de postulaciones y las demás pantallas.
   const inputClase =
-    "w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500";
+    "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100";
 
   const botonPrimario =
-    "inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 disabled:opacity-50 cursor-pointer";
+    "inline-flex items-center justify-center gap-2 bg-primary-600 text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-50 cursor-pointer";
 
   const botonSecundario =
-    "inline-flex items-center justify-center gap-2 border border-slate-300 px-5 py-2.5 rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer";
+    "inline-flex items-center justify-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-slate-50 disabled:opacity-50 cursor-pointer";
   
   const handleVistaPrevia = async (cv) => {
     try {
@@ -338,61 +346,67 @@ export default function Cvs() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 pb-6">
+      {/* Encabezado: mismas medidas que Empleos, Postulaciones y Recomendaciones */}
       <section className="bg-gradient-to-r from-primary-700 via-primary-600 to-accent-700 text-white">
-        <div className="max-w-6xl mx-auto px-5 py-14">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold mb-5">
+        <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-4 py-1.5 text-sm font-medium mb-5">
             <FileText size={16} />
             Tu perfil profesional comienza acá
           </span>
 
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight">
             Tu experiencia, tu próximo gran paso.
           </h1>
 
-          <p className="text-lg text-primary-100 max-w-3xl">
+          <p className="mt-1 max-w-3xl text-sm text-primary-100">
             Creá, administrá y potenciá tus currículums con ayuda
             de la inteligencia artificial.
           </p>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-5 py-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+      {/* El listado usa todo el ancho (como el resto de las páginas de listado); los formularios, un ancho de lectura. */}
+      <div
+        className={`mx-auto w-full px-4 pt-4 sm:px-6 ${
+          vista === "listado" ? "max-w-[1440px]" : "max-w-4xl"
+        }`}
+      >
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">
           Mis currículums
         </h2>
 
-        <p className="text-slate-500 mb-8">
+        <p className="mt-1 mb-4 text-xs text-slate-500">
           Administrá tus CV y preparalos para tus postulaciones.
         </p>
 
         {vista === "listado" && (
           <>
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="flex flex-wrap gap-3 mb-4">
               <button
                 type="button"
                 onClick={abrirNuevoCv}
                 className={botonPrimario}
               >
-                <Plus size={18} />
+                <Plus size={17} />
                 Crear CV
               </button>
 
               <button
                 type="button"
                 onClick={abrirSubida}
-                className="inline-flex items-center gap-2 border border-primary-600 text-primary-600 px-5 py-2.5 rounded-lg hover:bg-primary-50 cursor-pointer"
+                className="inline-flex items-center gap-2 border border-primary-600 text-primary-600 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-primary-50 cursor-pointer"
               >
-                <Upload size={18} />
+                <Upload size={17} />
                 Subir CV
               </button>
 
               <button
                 type="button"
                 onClick={abrirGeneracionIA}
-                className="borde-ia inline-flex items-center gap-2 text-violet-700 font-medium px-5 py-2.5 rounded-lg cursor-pointer"
+                className="borde-ia inline-flex items-center gap-2 text-violet-700 font-semibold px-4 py-2 text-sm rounded-lg cursor-pointer"
               >
-                <Sparkles size={18} />
+                <Sparkles size={17} />
                 Generar con IA
               </button>
             </div>
@@ -400,9 +414,22 @@ export default function Cvs() {
             {mensaje && (
               <div
                 role="status"
-                className="mb-6 bg-green-50 text-green-700 border border-green-200 rounded-lg p-4"
+                className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700"
               >
                 {mensaje}
+                {cvRecienSubido && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-slate-700">
+                    <span>¿Querés que la IA lea el CV y te proponga datos para tu perfil laboral?</span>
+                    <button
+                      type="button"
+                      onClick={() => { setCvParaImportar(cvRecienSubido); setCvRecienSubido(null); }}
+                      className="borde-ia inline-flex items-center gap-2 px-4 py-2 rounded-lg text-violet-700 font-medium text-sm cursor-pointer"
+                    >
+                      <Sparkles size={16} />
+                      Importar a mi perfil
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -414,7 +441,7 @@ export default function Cvs() {
             )}
 
             {error && (
-              <p className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+              <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {error}
               </p>
             )}
@@ -432,30 +459,30 @@ export default function Cvs() {
             )}
 
             {!cargando && !error && cvs.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {cvs.map((cv) => (
                   <div
                     key={cv.id}
-                    className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm"
+                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                   >
                     <div className="flex items-start gap-3">
                       <FileText
-                        size={26}
+                        size={24}
                         className="text-primary-600 shrink-0"
                       />
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg text-slate-800 break-words">
+                        <h3 className="font-semibold text-base text-slate-900 break-words">
                           {cv.titulo}
                         </h3>
 
                         {cv.esPrincipal && (
-                          <span className="inline-block mt-2 text-xs font-semibold bg-primary-100 text-primary-700 px-3 py-1 rounded-full">
+                          <span className="inline-block mt-1.5 text-xs font-semibold bg-primary-100 text-primary-700 px-2.5 py-0.5 rounded-full">
                             CV principal
                           </span>
                         )}
 
-                        <p className="text-sm text-slate-500 mt-3">
+                        <p className="text-xs text-slate-500 mt-2">
                           {cv.tieneArchivo
                             ? "Contiene un archivo adjunto"
                             : "CV sin archivo adjunto"}
@@ -463,14 +490,14 @@ export default function Cvs() {
 
                         
                       {/* ACCIONES DEL CURRÍCULUM */}
-                        <div className="grid grid-cols-2 gap-2 mt-4">
+                        <div className="grid grid-cols-2 gap-2 mt-3">
 
                         {/* Vista previa */}
                         <button
                           type="button"
                           onClick={() => handleVistaPrevia(cv)}
                           disabled={cargandoVistaPrevia}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2
                                     border border-primary-600 text-primary-600 rounded-lg
                                     hover:bg-primary-50 disabled:opacity-50 cursor-pointer
                                     text-sm transition-colors"
@@ -483,7 +510,7 @@ export default function Cvs() {
                         <button
                           type="button"
                           onClick={() => handleDescargar(cv)}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2
                                     bg-primary-600 text-white rounded-lg hover:bg-primary-700
                                     cursor-pointer text-sm transition-colors"
                         >
@@ -497,7 +524,7 @@ export default function Cvs() {
                             type="button"
                             onClick={() => handleDescargarOriginal(cv)}
                             className="col-span-2 inline-flex items-center justify-center
-                                      gap-2 px-3 py-2.5 border border-primary-300
+                                      gap-2 px-3 py-2 border border-primary-300
                                       text-primary-600 rounded-lg hover:bg-primary-50
                                       cursor-pointer text-sm transition-colors"
                           >
@@ -510,18 +537,29 @@ export default function Cvs() {
                         <button
                           type="button"
                           onClick={() => handleModificarConChat(cv)}
-                          className="borde-ia col-span-2 inline-flex items-center justify-center gap-2 px-3 py-2.5
+                          className="borde-ia col-span-2 inline-flex items-center justify-center gap-2 px-3 py-2
                                     text-violet-700 font-medium rounded-lg cursor-pointer text-sm"
                         >
                           <MessageSquare size={17} />
                           Modificar con chatbot
                         </button>
 
+                        {/* Importar los datos del CV al perfil laboral (con IA, el usuario confirma) */}
+                        <button
+                          type="button"
+                          onClick={() => setCvParaImportar({ id: cv.id, titulo: cv.titulo })}
+                          className="borde-ia col-span-2 inline-flex items-center justify-center gap-2 px-3 py-2
+                                    text-violet-700 font-medium rounded-lg cursor-pointer text-sm"
+                        >
+                          <Sparkles size={17} />
+                          Importar a mi perfil
+                        </button>
+
                         {/* Editar */}
                         <button
                           type="button"
                           onClick={() => handleEditar(cv)}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2
                                     border border-slate-300 text-slate-700 rounded-lg
                                     hover:bg-slate-50 cursor-pointer text-sm transition-colors"
                         >
@@ -533,7 +571,7 @@ export default function Cvs() {
                         <button
                           type="button"
                           onClick={() => handleEliminar(cv)}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-2.5
+                          className="inline-flex items-center justify-center gap-2 px-3 py-2
                                     border border-red-200 text-red-600 rounded-lg
                                     hover:bg-red-50 cursor-pointer text-sm transition-colors"
                         >
@@ -554,10 +592,10 @@ export default function Cvs() {
         {vista === "manual" && (
           <form
             onSubmit={handleGuardarCv}
-            className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4"
           >
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-slate-800">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">
                 {cvEditando
                   ? "Editar currículum"
                   : "Crear nuevo currículum"}
@@ -577,7 +615,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="tituloCv"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Título del CV
               </label>
@@ -600,7 +638,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="textoCv"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Contenido del CV
               </label>
@@ -662,10 +700,10 @@ export default function Cvs() {
         {vista === "archivo" && (
           <form
             onSubmit={handleSubirCv}
-            className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4"
           >
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-slate-800">
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">
                 Subir currículum
               </h2>
 
@@ -683,7 +721,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="tituloArchivo"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Título del CV
               </label>
@@ -704,7 +742,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="archivoCv"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Archivo PDF o Word (.docx), máximo 5 MB
               </label>
@@ -755,7 +793,7 @@ export default function Cvs() {
         {vista === "ia" && (
           <form
             onSubmit={handleGenerarIA}
-            className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5"
+            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -764,7 +802,7 @@ export default function Cvs() {
                   className="text-violet-600"
                 />
 
-                <h2 className="text-xl font-semibold text-slate-800">
+                <h2 className="text-xl font-bold tracking-tight text-slate-900">
                   Generar currículum con IA
                 </h2>
               </div>
@@ -789,7 +827,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="tituloIA"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Título del CV (opcional)
               </label>
@@ -812,7 +850,7 @@ export default function Cvs() {
             <div>
               <label
                 htmlFor="puestoObjetivo"
-                className="block text-sm font-medium mb-2"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
               >
                 Puesto objetivo (opcional)
               </label>
@@ -948,7 +986,7 @@ export default function Cvs() {
               <button
                 type="button"
                 onClick={cerrarVistaPrevia}
-                className="px-5 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer"
               >
                 Cerrar
               </button>
@@ -982,6 +1020,15 @@ export default function Cvs() {
             <X size={18} />
           </button>
         </div>
+      )}
+
+      {/* IMPORTAR DATOS DEL CV AL PERFIL */}
+      {cvParaImportar && (
+        <ImportarCvPerfil
+          key={cvParaImportar.id}
+          cv={cvParaImportar}
+          onCerrar={() => setCvParaImportar(null)}
+        />
       )}
 
       {/* CONFIRMAR ELIMINACIÓN */}
